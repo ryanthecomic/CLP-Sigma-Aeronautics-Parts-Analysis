@@ -1,0 +1,187 @@
+/**
+ * Tipos de domínio do Aerolyze Lab.
+ *
+ * Dono: Membro 1 (Modelo). Congelado após a Fase 0 — mudanças exigem
+ * revisão do Membro 1 e do Membro 2.
+ *
+ * Este arquivo é TypeScript puro: não importa React nem nada fora de `core`.
+ */
+
+/** Classificação final de qualidade de um lote. */
+export type StatusQualidade = "OTIMO" | "ATENCAO" | "CRITICO";
+
+/** Camadas da arquitetura MVC original (usadas no pipeline e nos logs). */
+export type ModuloSistema = "VIEW" | "CONTROLLER" | "MODEL" | "CALC" | "IA" | "REPO";
+
+export const MODULOS_SISTEMA: readonly ModuloSistema[] = [
+  "VIEW",
+  "CONTROLLER",
+  "MODEL",
+  "CALC",
+  "IA",
+  "REPO",
+];
+
+/** Peça aeronáutica cadastrada. */
+export interface PecaAeronautica {
+  id: string;
+  nome: string;
+  material: string;
+  pesoKg: number;
+  conforme: boolean;
+}
+
+/** Dados de produção de um lote de peças. */
+export interface DadosProducaoAero {
+  id: string;
+  pecaId: string;
+  /** Data do lote no formato ISO `AAAA-MM-DD`. */
+  dataLote: string;
+  quantidade: number;
+  defeituosos: number;
+  horas: number;
+  /** Temperatura do processo em °C. */
+  temperatura: number;
+  /** Pressão do processo em bar. */
+  pressao: number;
+}
+
+/**
+ * Regras de análise configuráveis.
+ *
+ * Os cinco primeiros campos são o contrato mínimo; os limiares de
+ * classificação foram adicionados para que a classificação também seja
+ * configurável (ver seção 7 do prompt).
+ */
+export interface RegrasAnaliseAero {
+  temperaturaMin: number;
+  temperaturaMax: number;
+  pressaoMin: number;
+  pressaoMax: number;
+  confiancaMinimaIA: number;
+  /** Taxa de defeitos (%) até a qual o lote é ÓTIMO. */
+  taxaDefeitosOtimo: number;
+  /** Taxa de defeitos (%) até a qual o lote é ATENÇÃO. Acima disso, CRÍTICO. */
+  taxaDefeitosAtencao: number;
+  /** Eficiência (%) mínima para ÓTIMO. */
+  eficienciaOtimo: number;
+  /** Eficiência (%) mínima para ATENÇÃO. Abaixo disso, CRÍTICO. */
+  eficienciaAtencao: number;
+}
+
+export type StatusPasso = "PENDENTE" | "EXECUTANDO" | "SUCESSO" | "ALERTA" | "ERRO" | "IGNORADO";
+
+/** Um passo do pipeline de análise. */
+export interface PipelineStep {
+  id: string;
+  label: string;
+  modulo: ModuloSistema;
+  status: StatusPasso;
+  duracaoMs: number;
+  motivo?: string;
+  entrada?: unknown;
+  saida?: unknown;
+}
+
+/** Erro de validação específico (guard clause reprovada). */
+export interface ValidationIssue {
+  codigo: string;
+  campo: string;
+  mensagem: string;
+  modulo: ModuloSistema;
+}
+
+export type OrigemResultado = "IA" | "FALLBACK" | "VALIDACAO";
+
+/** Métricas de produção calculadas para um lote. */
+export interface MetricasProducao {
+  /** Peças por hora. */
+  produtividade: number;
+  /** Percentual de peças defeituosas (0–100). */
+  taxaDefeitos: number;
+  /** Eficiência (0–100). */
+  eficiencia: number;
+  /** Conformidade (0–100). */
+  conformidade: number;
+  /** Previsão de falhas (0–100). */
+  previsaoFalhas: number;
+}
+
+/** Resultado de uma análise de lote. */
+export interface ResultadoAnalise extends MetricasProducao {
+  id: string;
+  loteId: string;
+  status: StatusQualidade;
+  recomendacao: string;
+  origem: OrigemResultado;
+  /** Confiança entre 0 e 1. */
+  confianca: number;
+  traceId: string;
+  passos: PipelineStep[];
+  /** Erros de validação (vazio quando a entrada é válida). */
+  erros: ValidationIssue[];
+  /** Data/hora ISO da análise. */
+  criadoEm: string;
+}
+
+export type NivelLog = "DEBUG" | "INFO" | "WARN" | "ERROR";
+
+export const NIVEIS_LOG: readonly NivelLog[] = ["DEBUG", "INFO", "WARN", "ERROR"];
+
+/** Evento de log emitido pelo event bus. */
+export interface LogEvent {
+  id: string;
+  timestamp: string;
+  nivel: NivelLog;
+  modulo: ModuloSistema;
+  mensagem: string;
+  traceId?: string;
+  payload?: unknown;
+}
+
+/** Flags do Modo Desenvolvedor que alteram o motor mock. */
+export interface FlagsDev {
+  /** A IA sempre lança exceção. */
+  forcarFalhaIA: boolean;
+  /** A IA é ignorada e o fallback sempre executa. */
+  forcarFallback: boolean;
+  /** Adiciona guard clauses extras (data não futura e margem de segurança). */
+  validacaoEstrita: boolean;
+  /** Adiciona latência artificial à inferência da IA. */
+  latenciaSimulada: boolean;
+}
+
+/** Modos de falha simuláveis da IA mock. */
+export type ModoFalhaIA = "NENHUM" | "EXCECAO" | "TIMEOUT" | "BAIXA_CONFIANCA" | "SAIDA_INVALIDA";
+
+export const MODOS_FALHA_IA: readonly ModoFalhaIA[] = [
+  "NENHUM",
+  "EXCECAO",
+  "TIMEOUT",
+  "BAIXA_CONFIANCA",
+  "SAIDA_INVALIDA",
+];
+
+/** Entrada de uma análise (o que o operador informa). */
+export interface AnaliseInput {
+  /** Opcional: se ausente, o motor gera um id de lote. */
+  loteId?: string;
+  pecaId: string;
+  dataLote: string;
+  quantidade: number;
+  defeituosos: number;
+  horas: number;
+  temperatura: number;
+  pressao: number;
+}
+
+/** Tudo o que o Repositório persiste. */
+export interface DadosPersistidos {
+  versao: 1;
+  pecas: PecaAeronautica[];
+  lotes: DadosProducaoAero[];
+  resultados: ResultadoAnalise[];
+  regras: RegrasAnaliseAero;
+  flags: FlagsDev;
+}
+
