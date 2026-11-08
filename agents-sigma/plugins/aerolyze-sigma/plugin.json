@@ -1,0 +1,12 @@
+{
+  "name": "aerolyze-sigma",
+  "displayName": "Aerolyze Lab — Equipe Sigma (UFAL)",
+  "version": "1.0.0",
+  "author": "Equipe Sigma — UFAL",
+  "description": "Regras de arquitetura, skills de desenvolvimento/qualidade e subagentes de auditoria e testes para os 7 módulos do Aerolyze Lab.",
+  "suggestedPrompts": [
+    "Use a skill aerolyze-module-dev para evoluir o meu módulo mantendo os contratos do core",
+    "Execute a skill aerolyze-quality-gate para validar fronteiras de módulos, testes e build",
+    "Invoque o subagente architecture-guardian para auditar as alterações antes do PR"
+  ]
+}
