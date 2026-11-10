@@ -21,10 +21,10 @@ Estas regras são **obrigatórias** ao criar, editar ou revisar qualquer código
 
 ## 4. Propriedade de Arquivos (7 Membros)
 - **Membro 1 (Modelo):** `src/core/types.ts`, `src/core/rules.ts`, `src/modules/modelo/`
-- **Membro 2 (Controlador):** `src/core/contracts.ts`, `src/core/pipeline.ts`, `src/core/mockEngine.ts`, `src/core/eventBus.ts`, `src/store/`, `src/modules/registry.ts`, `src/features/dev/`, `src/modules/controlador/`
+- **Membro 2 (Controlador):** `src/core/contracts.ts`, `src/core/pipeline.ts`, `src/core/mockEngine.ts`, `src/core/eventBus.ts`, `src/core/scenarios.ts`, `src/core/store.ts`, `src/core/utils.ts`, `src/store/`, `src/modules/registry.ts`, `src/features/dev/`, `src/modules/controlador/`
 - **Membro 3 (Cálculos & Fallback):** `src/core/calculations.ts`, `src/core/fallback.ts`, `src/modules/calculos/`
 - **Membro 4 (IA):** `src/core/ia.ts`, `src/modules/ia/`
-- **Membro 5 (Repositório):** `src/core/repository.ts`, `src/core/seed.ts`, `src/modules/repositorio/`
+- **Membro 5 (Repositório):** `src/core/repository.ts`, `src/core/seed.ts`, `src/core/config.ts`, `src/modules/repositorio/`
 - **Membro 6 (View de Entrada):** `src/core/schemas.ts`, `src/components/form/`, `src/modules/view-entrada/`
 - **Membro 7 (View de Dashboard):** `src/components/ui/`, `src/components/layout/`, `src/components/result/`, `src/features/operator/`, `src/modules/view-dashboard/`
 
