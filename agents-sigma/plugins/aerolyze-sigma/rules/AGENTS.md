@@ -27,3 +27,7 @@ Estas regras são **obrigatórias** ao criar, editar ou revisar qualquer código
 - **Membro 5 (Repositório):** `src/core/repository.ts`, `src/core/seed.ts`, `src/modules/repositorio/`
 - **Membro 6 (View de Entrada):** `src/core/schemas.ts`, `src/components/form/`, `src/modules/view-entrada/`
 - **Membro 7 (View de Dashboard):** `src/components/ui/`, `src/components/layout/`, `src/components/result/`, `src/features/operator/`, `src/modules/view-dashboard/`
+
+## 5. Fonte de Verdade de Requisitos, Fluxos e HUs (Economia de Tokens)
+- Toda a análise dos PDFs, diagramas UML, fórmulas, Requisitos (`RF01`–`RF27` / `RNF01`–`RNF10`), Histórias de Usuário (`HU-01` a `HU-31`) e *Gap Analysis* já está consolidada em `material de apoio/PLANEJAMENTO-E-ESPECIFICACAO-ACADEMICA-Aerolyze.md`.
+- **Não releia os PDFs** de `material de apoio/` nem faça varredura completa de `web/src/` sem necessidade: consulte `material de apoio/PLANEJAMENTO-E-ESPECIFICACAO-ACADEMICA-Aerolyze.md` e abra apenas os arquivos do módulo/HU solicitado.
