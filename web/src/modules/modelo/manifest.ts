@@ -8,7 +8,14 @@ export const modeloManifest: ReactModuleManifest = {
   descricao: "Estruturas de domínio, validação de peças e regras de conformidade.",
   status: "pronto",
   camada: "MODEL",
-  contratos: ["PecaAeronautica", "DadosProducaoAero", "ResultadoAnalise", "RegrasAnaliseAero", "StatusQualidade"],
+  contratos: [
+    "PecaAeronautica",
+    "DadosProducaoAero",
+    "ResultadoAnalise",
+    "RegrasAnaliseAero",
+    "StatusQualidade",
+    "ValidationIssue",
+  ],
   sandbox: lazy(() => import("./sandbox")),
 };
 

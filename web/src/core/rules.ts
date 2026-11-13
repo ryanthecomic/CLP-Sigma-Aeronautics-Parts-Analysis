@@ -65,29 +65,49 @@ function issue(codigo: string, campo: string, mensagem: string): ValidationIssue
   return { codigo, campo, mensagem, modulo: "MODEL" };
 }
 
+function textoObrigatorio(valor: unknown): boolean {
+  return typeof valor === "string" && valor.trim().length > 0;
+}
+
 /** Valida os campos cadastrais da peça (não exige conformidade). */
 export function validarCadastroPeca(peca: PecaAeronautica): ValidationIssue[] {
   const erros: ValidationIssue[] = [];
-  if (!peca.id.trim()) erros.push(issue("PECA_ID_OBRIGATORIO", "id", "O código da peça é obrigatório."));
-  if (!peca.nome.trim()) erros.push(issue("PECA_NOME_OBRIGATORIO", "nome", "O nome da peça é obrigatório."));
-  if (!peca.material.trim()) {
+  if (!textoObrigatorio(peca.id)) {
+    erros.push(issue("PECA_ID_OBRIGATORIO", "id", "O código da peça é obrigatório."));
+  }
+  if (!textoObrigatorio(peca.nome)) {
+    erros.push(issue("PECA_NOME_OBRIGATORIO", "nome", "O nome da peça é obrigatório."));
+  }
+  if (!textoObrigatorio(peca.material)) {
     erros.push(issue("PECA_MATERIAL_OBRIGATORIO", "material", "O material da peça é obrigatório."));
   }
-  if (!Number.isFinite(peca.pesoKg) || peca.pesoKg <= 0) {
+  if (typeof peca.pesoKg !== "number" || !Number.isFinite(peca.pesoKg) || peca.pesoKg <= 0) {
     erros.push(issue("PECA_PESO_INVALIDO", "pesoKg", "O peso deve ser maior que 0 kg."));
   }
   return erros;
 }
 
-/** Valida a peça para análise: cadastro + regra de conformidade. */
-export function validarPeca(peca: PecaAeronautica): ValidationIssue[] {
+/**
+ * Valida a peça para análise: cadastro + regra de conformidade.
+ *
+ * Aceita `undefined`/`null` para cobrir o caso de peça inexistente sem
+ * lançar exceção. O Controlador e o sandbox do Modelo consomem este
+ * contrato e recebem uma lista estruturada de `ValidationIssue`.
+ */
+export function validarPeca(peca: PecaAeronautica | null | undefined): ValidationIssue[] {
+  if (!peca) {
+    return [issue("PECA_NAO_ENCONTRADA", "pecaId", "A peça informada não foi encontrada.")];
+  }
+
   const erros = validarCadastroPeca(peca);
   if (!peca.conforme) {
+    const id = textoObrigatorio(peca.id) ? peca.id.trim() : "sem código";
+    const nome = textoObrigatorio(peca.nome) ? peca.nome.trim() : "sem nome";
     erros.push(
       issue(
         "PECA_NAO_CONFORME",
         "conforme",
-        `A peça ${peca.id} (${peca.nome}) não está conforme e não pode ser analisada.`,
+        `A peça ${id} (${nome}) não está conforme e não pode ser analisada.`,
       ),
     );
   }
