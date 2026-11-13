@@ -7,6 +7,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { CodeBlock } from "../../components/ui/CodeBlock";
+import { EmptyState } from "../../components/ui/EmptyState";
 import { Input } from "../../components/ui/Input";
 import { useRepositorio } from "../../hooks/useDados";
 import { useModule } from "../../hooks/useModule";
@@ -26,6 +27,15 @@ const FORM_VAZIO: FormPeca = {
   pesoKg: "4.5",
   conforme: true,
 };
+
+/** Gera o próximo código sequencial sem colidir com peças existentes. */
+function proximoIdDisponivel(pecas: PecaAeronautica[]): string {
+  const maior = pecas.reduce((max, peca) => {
+    const numero = Number(peca.id.replace(/\D/g, ""));
+    return Number.isFinite(numero) ? Math.max(max, numero) : max;
+  }, 0);
+  return `P-${String(maior + 1).padStart(3, "0")}`;
+}
 
 export function ModeloSandbox() {
   const { pecas, salvarPeca, alternarConforme, removerPeca } = useRepositorio();
@@ -52,12 +62,11 @@ export function ModeloSandbox() {
   };
 
   const iniciarNova = () => {
-    const proximoNum = pecas.length + 1;
     setEditando(false);
     setErrosForm([]);
     setForm({
       ...FORM_VAZIO,
-      id: `P-00${proximoNum}`,
+      id: proximoIdDisponivel(pecas),
     });
   };
 
@@ -74,6 +83,14 @@ export function ModeloSandbox() {
     if (issues.length > 0) {
       setErrosForm(issues.map((i) => i.mensagem));
       log("WARN", `Tentativa de salvar peça inválida (${peca.id}).`, issues);
+      return;
+    }
+    const idDuplicado = pecas.some(
+      (p) => p.id === peca.id && (!editando || p.id !== selecionadaId),
+    );
+    if (idDuplicado) {
+      setErrosForm([`Já existe uma peça com o código ${peca.id}.`]);
+      log("WARN", `Tentativa de salvar peça com código duplicado (${peca.id}).`, { peca });
       return;
     }
     setErrosForm([]);
@@ -94,8 +111,19 @@ export function ModeloSandbox() {
         }
         className="lg:col-span-2"
       >
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        {pecas.length === 0 ? (
+          <EmptyState
+            titulo="Nenhuma peça cadastrada"
+            descricao="Crie a primeira peça para liberar a análise de lotes."
+            acao={
+              <Button variante="primario" tamanho="sm" onClick={iniciarNova} icone={<Plus className="size-3.5" />}>
+                Criar peça
+              </Button>
+            }
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-borda text-slate-400">
                 <th className="py-2 pr-3 font-medium">ID</th>
@@ -162,8 +190,9 @@ export function ModeloSandbox() {
                 );
               })}
             </tbody>
-          </table>
-        </div>
+            </table>
+          </div>
+        )}
       </Card>
 
       <Card
@@ -174,6 +203,8 @@ export function ModeloSandbox() {
           <Input
             rotulo="Código (ID)"
             value={form.id}
+            disabled={editando}
+            dica={editando ? "O código não pode ser alterado durante a edição." : undefined}
             onChange={(e) => setForm({ ...form, id: e.target.value })}
           />
           <Input
@@ -222,6 +253,25 @@ export function ModeloSandbox() {
           descricao="Contrato PecaAeronautica e resultado de validarPeca(peca)."
           className="lg:col-span-3"
         >
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <Badge
+              tom={validacaoSelecionada.length === 0 ? "sucesso" : "perigo"}
+              icone={
+                validacaoSelecionada.length === 0 ? (
+                  <CheckCircle2 className="size-3.5" aria-hidden />
+                ) : (
+                  <XCircle className="size-3.5" aria-hidden />
+                )
+              }
+            >
+              {validacaoSelecionada.length === 0
+                ? "Apta para análise"
+                : `${validacaoSelecionada.length} impedimento(s) de conformidade`}
+            </Badge>
+            <span className="text-xs text-slate-500">
+              validarPeca() retorna lista estruturada, sem lançar exceção.
+            </span>
+          </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <CodeBlock titulo={`PecaAeronautica (${selecionada.id})`} valor={selecionada} />
             <CodeBlock
