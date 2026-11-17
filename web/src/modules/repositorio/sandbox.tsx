@@ -1,13 +1,42 @@
-import { Database, RotateCcw, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Code2, Database, RotateCcw, Trash2 } from "lucide-react";
 import { StatusBadge } from "../../components/result/ResultCard";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { CodeBlock } from "../../components/ui/CodeBlock";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { useRepositorio } from "../../hooks/useDados";
+import { useRepositorio, useRegras } from "../../hooks/useDados";
+import { useFlags } from "../../hooks/useFlags";
+import { useModule } from "../../hooks/useModule";
 
 export function RepositorioSandbox() {
   const { pecas, lotes, resultados, removerLote, removerResultado, resetarDados, chave } = useRepositorio();
+  const { regras } = useRegras();
+  const { flags } = useFlags();
+  const { log } = useModule("repositorio");
+  const [mostrarSnapshot, setMostrarSnapshot] = useState(false);
+
+  const handleRemoverLote = (id: string) => {
+    removerLote(id);
+    log("WARN", `Lote ${id} removido do Repositório local.`, { loteId: id, chave });
+  };
+
+  const handleRemoverResultado = (id: string) => {
+    removerResultado(id);
+    log("WARN", `Resultado ${id} removido do Repositório local.`, { resultadoId: id, chave });
+  };
+
+  const handleReset = () => {
+    resetarDados();
+    log("INFO", "Repositório resetado para o seed determinístico (5 peças e 6 lotes).", { chave });
+  };
+
+  const snapshotJson = JSON.stringify(
+    { versao: 1, chave, pecas, lotes, resultados, regras, flags },
+    null,
+    2,
+  );
 
   return (
     <div className="space-y-4">
@@ -15,14 +44,24 @@ export function RepositorioSandbox() {
         titulo="Configuração de Persistência"
         descricao="Apenas o Repositório acessa o localStorage. Se o JSON for corrompido, o seed é restaurado com segurança."
         acoes={
-          <Button
-            variante="secundario"
-            tamanho="sm"
-            onClick={resetarDados}
-            icone={<RotateCcw className="size-3.5" />}
-          >
-            Resetar para o seed
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variante="fantasma"
+              tamanho="sm"
+              onClick={() => setMostrarSnapshot((atual) => !atual)}
+              icone={<Code2 className="size-3.5" />}
+            >
+              {mostrarSnapshot ? "Ocultar JSON" : "Inspecionar JSON"}
+            </Button>
+            <Button
+              variante="secundario"
+              tamanho="sm"
+              onClick={handleReset}
+              icone={<RotateCcw className="size-3.5" />}
+            >
+              Resetar para o seed
+            </Button>
+          </div>
         }
       >
         <div className="flex flex-wrap items-center gap-3 text-xs">
@@ -33,6 +72,15 @@ export function RepositorioSandbox() {
           <Badge tom="neutro">{lotes.length} lotes</Badge>
           <Badge tom="neutro">{resultados.length} resultados</Badge>
         </div>
+        {mostrarSnapshot ? (
+          <div className="mt-3">
+            <CodeBlock
+              titulo={`Payload persistido (${chave})`}
+              valor={snapshotJson}
+              linguagem="json"
+            />
+          </div>
+        ) : null}
       </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -68,7 +116,7 @@ export function RepositorioSandbox() {
                         <Button
                           variante="perigo"
                           tamanho="sm"
-                          onClick={() => removerLote(l.id)}
+                          onClick={() => handleRemoverLote(l.id)}
                           icone={<Trash2 className="size-3.5" />}
                           aria-label={`Excluir lote ${l.id}`}
                         />
@@ -114,7 +162,7 @@ export function RepositorioSandbox() {
                         <Button
                           variante="perigo"
                           tamanho="sm"
-                          onClick={() => removerResultado(r.id)}
+                          onClick={() => handleRemoverResultado(r.id)}
                           icone={<Trash2 className="size-3.5" />}
                           aria-label={`Excluir resultado ${r.id}`}
                         />

@@ -109,32 +109,36 @@ export function criarRepositorioLocal(storage: StorageLike = obterStorageNavegad
     snapshot: () => clonar(dados),
 
     buscarPeca: (id) => {
-      const peca = dados.pecas.find((p) => p.id === id);
-      return peca ? { ...peca } : undefined;
+      const alvo = typeof id === "string" ? id.trim() : "";
+      const peca = dados.pecas.find((p) => p.id === id || p.id === alvo);
+      return peca ? structuredClone(peca) : undefined;
     },
 
     buscarLote: (id) => {
-      const lote = dados.lotes.find((l) => l.id === id);
-      return lote ? { ...lote } : undefined;
+      const alvo = typeof id === "string" ? id.trim() : "";
+      const lote = dados.lotes.find((l) => l.id === id || l.id === alvo);
+      return lote ? structuredClone(lote) : undefined;
     },
 
-    listarResultados: () => clonar(dados).resultados,
+    listarResultados: () => structuredClone(dados.resultados),
 
     salvarPeca: (peca) =>
       mutar((d) => {
-        const existe = d.pecas.some((p) => p.id === peca.id);
+        const copia = structuredClone(peca);
+        const existe = d.pecas.some((p) => p.id === copia.id);
         return {
           ...d,
-          pecas: existe ? d.pecas.map((p) => (p.id === peca.id ? { ...peca } : p)) : [...d.pecas, { ...peca }],
+          pecas: existe ? d.pecas.map((p) => (p.id === copia.id ? copia : p)) : [...d.pecas, copia],
         };
       }),
 
     registrarLote: (lote) =>
       mutar((d) => {
-        const existe = d.lotes.some((l) => l.id === lote.id);
+        const copia = structuredClone(lote);
+        const existe = d.lotes.some((l) => l.id === copia.id);
         return {
           ...d,
-          lotes: existe ? d.lotes.map((l) => (l.id === lote.id ? { ...lote } : l)) : [...d.lotes, { ...lote }],
+          lotes: existe ? d.lotes.map((l) => (l.id === copia.id ? copia : l)) : [...d.lotes, copia],
         };
       }),
 
@@ -151,9 +155,9 @@ export function criarRepositorioLocal(storage: StorageLike = obterStorageNavegad
         return { ...d, resultados: d.resultados.filter((r) => r.id !== id) };
       }),
 
-    atualizarRegras: (regras) => mutar((d) => ({ ...d, regras: { ...regras } })),
+    atualizarRegras: (regras) => mutar((d) => ({ ...d, regras: structuredClone(regras) })),
 
-    atualizarFlags: (flags) => mutar((d) => ({ ...d, flags: { ...flags } })),
+    atualizarFlags: (flags) => mutar((d) => ({ ...d, flags: structuredClone(flags) })),
 
     reset: () => {
       dados = criarSeed();

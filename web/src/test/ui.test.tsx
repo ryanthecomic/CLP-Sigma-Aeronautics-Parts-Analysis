@@ -87,6 +87,22 @@ describe("Testes de componentes e integração de fluxo (React Testing Library)"
     expect(useAppStore.getState().resultados.length).toBe(1);
   });
 
+  it("lista registros, exclui lote e restaura o seed no sandbox do Repositório", async () => {
+    const user = userEvent.setup();
+    renderRota("/dev/modulo/repositorio");
+
+    expect(await screen.findByText(/Configuração de Persistência/i)).toBeInTheDocument();
+    expect(screen.getByText("aerolyze-lab:v1")).toBeInTheDocument();
+    expect(screen.getByText("L-001")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Excluir lote L-001/i }));
+    expect(screen.queryByText("L-001")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Resetar para o seed/i }));
+    expect(await screen.findByText("L-001")).toBeInTheDocument();
+    expect(useAppStore.getState().logs.some((l) => l.modulo === "REPO")).toBe(true);
+  });
+
   it("abre todos os 7 sandboxes via lazy loading sem erro", async () => {
     const ids = [
       "modelo",
