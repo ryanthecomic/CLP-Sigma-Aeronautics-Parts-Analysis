@@ -8,7 +8,16 @@ export const repositorioManifest: ReactModuleManifest = {
   descricao: "Única porta de persistência local (localStorage versionado) e seed determinístico.",
   status: "pronto",
   camada: "REPO",
-  contratos: ["Repository", "DadosPersistidos", "DadosProducaoAero", "ResultadoAnalise"],
+  contratos: [
+    "Repository",
+    "StorageLike",
+    "ResultadoCarga",
+    "ColecaoRepositorio",
+    "DadosPersistidos",
+    "PecaAeronautica",
+    "DadosProducaoAero",
+    "ResultadoAnalise",
+  ],
   sandbox: lazy(() => import("./sandbox")),
 };
 
