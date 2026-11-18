@@ -127,9 +127,8 @@ describe("Membro 5 — contrato do Repositório, Seed e Configuração", () => {
       expect(repo.buscarPeca("P-006")?.nome).toBe("Longarina revisada");
     });
 
-    it("registra lotes, resultados, remove itens por coleção e restaura o seed no reset", () => {
-      const storage = criarStorageMemoria();
-      const repo = criarRepositorioLocal(storage);
+    it("registra e atualiza lotes em isolamento", () => {
+      const repo = criarRepositorioLocal(criarStorageMemoria());
       repo.carregar();
 
       const novoLote: DadosProducaoAero = {
@@ -145,6 +144,14 @@ describe("Membro 5 — contrato do Repositório, Seed e Configuração", () => {
       repo.registrarLote(novoLote);
       expect(repo.buscarLote("L-007")?.quantidade).toBe(600);
 
+      repo.registrarLote({ ...novoLote, quantidade: 650 });
+      expect(repo.buscarLote("L-007")?.quantidade).toBe(650);
+    });
+
+    it("registra e lista resultados mantendo o mais recente no topo", () => {
+      const repo = criarRepositorioLocal(criarStorageMemoria());
+      repo.carregar();
+
       repo.registrarResultado(RESULTADO_EXEMPLO);
       expect(repo.listarResultados()).toHaveLength(1);
       expect(repo.listarResultados()[0].id).toBe("RES-500");
@@ -153,32 +160,54 @@ describe("Membro 5 — contrato do Repositório, Seed e Configuração", () => {
       repo.registrarResultado({ ...RESULTADO_EXEMPLO, recomendacao: "Atualizada" });
       expect(repo.listarResultados()).toHaveLength(1);
       expect(repo.listarResultados()[0].recomendacao).toBe("Atualizada");
+    });
+
+    it("remove itens individualmente por coleção (pecas, lotes e resultados)", () => {
+      const repo = criarRepositorioLocal(criarStorageMemoria());
+      repo.carregar();
+      repo.registrarResultado(RESULTADO_EXEMPLO);
 
       repo.remover("pecas", "P-001");
-      repo.remover("lotes", "L-007");
+      repo.remover("lotes", "L-001");
       repo.remover("resultados", "RES-500");
 
       expect(repo.buscarPeca("P-001")).toBeUndefined();
-      expect(repo.buscarLote("L-007")).toBeUndefined();
+      expect(repo.buscarLote("L-001")).toBeUndefined();
       expect(repo.listarResultados()).toHaveLength(0);
-
-      const restaurado = repo.reset();
-      expect(restaurado.pecas).toHaveLength(5);
-      expect(restaurado.lotes).toHaveLength(6);
-      expect(restaurado.resultados).toHaveLength(0);
     });
 
-    it("persiste alterações de regras e flags e recarrega em nova instância", () => {
+    it("dois resets consecutivos produzem exatamente as mesmas 5 peças e 6 lotes", () => {
+      const repo = criarRepositorioLocal(criarStorageMemoria());
+      repo.carregar();
+
+      repo.remover("pecas", "P-001");
+      repo.remover("lotes", "L-001");
+      repo.registrarResultado(RESULTADO_EXEMPLO);
+
+      const primeiroReset = repo.reset();
+      const segundoReset = repo.reset();
+
+      expect(primeiroReset.pecas).toHaveLength(5);
+      expect(primeiroReset.lotes).toHaveLength(6);
+      expect(primeiroReset.resultados).toHaveLength(0);
+      expect(segundoReset).toEqual(primeiroReset);
+    });
+
+    it("resultado registrado sobrevive a recarregar a aplicação e mantém regras/flags", () => {
       const storage = criarStorageMemoria();
       const repo1 = criarRepositorioLocal(storage);
       repo1.carregar();
 
+      repo1.registrarResultado(RESULTADO_EXEMPLO);
       repo1.atualizarRegras({ ...REGRAS_PADRAO, temperaturaMax: 245 });
       repo1.atualizarFlags({ ...FLAGS_PADRAO, validacaoEstrita: true });
 
       const repo2 = criarRepositorioLocal(storage);
       const { dados, aviso } = repo2.carregar();
       expect(aviso).toBeUndefined();
+      expect(dados.resultados).toHaveLength(1);
+      expect(dados.resultados[0]).toEqual(RESULTADO_EXEMPLO);
+      expect(repo2.listarResultados()[0].id).toBe("RES-500");
       expect(dados.regras.temperaturaMax).toBe(245);
       expect(dados.flags.validacaoEstrita).toBe(true);
     });
