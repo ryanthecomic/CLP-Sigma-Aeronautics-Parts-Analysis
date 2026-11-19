@@ -28,10 +28,13 @@ export const useAppStore = create<AppState>()((...a) => ({
 }));
 
 eventBus.on((evento) => {
-  const estado = useAppStore.getState();
   switch (evento.tipo) {
     case "analise:inicio":
-      useAppStore.setState({ traceAtual: evento.traceId, passos: [] });
+      useAppStore.setState({
+        traceAtual: evento.traceId,
+        passos: [],
+        executando: true,
+      });
       break;
     case "step":
       if (evento.traceId === useAppStore.getState().traceAtual) {
@@ -39,11 +42,16 @@ eventBus.on((evento) => {
       }
       break;
     case "log":
-      estado.adicionarLog(evento.log);
+      useAppStore.getState().adicionarLog(evento.log);
       break;
     case "analise:fim":
-      useAppStore.setState({ ultimoResultado: evento.resultado, passos: evento.resultado.passos });
-      estado.sincronizarDados();
+      if (evento.traceId !== useAppStore.getState().traceAtual) break;
+      useAppStore.setState({
+        ultimoResultado: evento.resultado,
+        passos: evento.resultado.passos,
+        executando: false,
+      });
+      useAppStore.getState().sincronizarDados();
       break;
   }
 });
