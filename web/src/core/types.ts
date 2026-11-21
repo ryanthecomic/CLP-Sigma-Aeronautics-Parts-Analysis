@@ -201,6 +201,11 @@ export interface DadosPersistidos {
   flags: FlagsDev;
 }
 
+export enum EtapaValidacao {
+  CAMPOS = "campos",
+  PECA = "peca",
+  LOTE = "lote",
+}
 export enum PipelineStepId {
   Entrada = "entrada",
   ValidarCampos = "validar-campos",

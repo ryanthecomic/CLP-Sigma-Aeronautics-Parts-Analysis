@@ -1,11 +1,12 @@
 import type { GuardResult, ResultadoValidacao } from "./contracts";
 import { validarPeca } from "./rules";
-import type {
-  AnaliseInput,
-  ModuloSistema,
-  PecaAeronautica,
-  RegrasAnaliseAero,
-  ValidationIssue,
+import {
+  EtapaValidacao,
+  type AnaliseInput,
+  type ModuloSistema,
+  type PecaAeronautica,
+  type RegrasAnaliseAero,
+  type ValidationIssue,
 } from "./types";
 
 export interface ContextoValidacao {
@@ -20,7 +21,7 @@ export const MARGEM_ESTRITA = 0.05;
 function guarda(
   id: string,
   label: string,
-  etapa: "campos" | "peca" | "lote",
+  etapa: EtapaValidacao,
   modulo: ModuloSistema,
   issues: ValidationIssue[],
 ): GuardResult {
@@ -63,13 +64,13 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
   } else if (!dataIsoValida(dataLote)) {
     camposIssues.push(erro("DATA_FORMATO_INVALIDO", "dataLote", "A data do lote deve estar no formato AAAA-MM-DD."));
   }
-  guardas.push(guarda("campos-obrigatorios", "Peça e data informadas", "campos", "CONTROLLER", camposIssues));
+  guardas.push(guarda("campos-obrigatorios", "Peça e data informadas", EtapaValidacao.CAMPOS, "CONTROLLER", camposIssues));
 
   const horasIssues: ValidationIssue[] = [];
   if (!Number.isFinite(input.horas) || input.horas <= 0) {
     horasIssues.push(erro("HORAS_INVALIDAS", "horas", "As horas de produção devem ser maiores que 0."));
   }
-  guardas.push(guarda("horas", "Horas de produção > 0", "campos", "CONTROLLER", horasIssues));
+  guardas.push(guarda("horas", "Horas de produção > 0", EtapaValidacao.CAMPOS, "CONTROLLER", horasIssues));
 
   if (ctx.estrita) {
     const dataIssues: ValidationIssue[] = [];
@@ -77,7 +78,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
     if (Number.isFinite(data) && data > ctx.agora.getTime()) {
       dataIssues.push(erro("DATA_FUTURA", "dataLote", "Validação estrita: a data do lote não pode ser futura."));
     }
-    guardas.push(guarda("data-nao-futura", "[Estrita] Data não futura", "campos", "CONTROLLER", dataIssues));
+    guardas.push(guarda("data-nao-futura", "[Estrita] Data não futura", EtapaValidacao.CAMPOS, "CONTROLLER", dataIssues));
   }
 
   const pecaIssues: ValidationIssue[] = [];
@@ -90,13 +91,13 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
   } else {
     pecaIssues.push(erro("PECA_NAO_INFORMADA", "pecaId", "Não há peça para validar.", "MODEL"));
   }
-  guardas.push(guarda("peca-conforme", "Peça existe e está conforme", "peca", "MODEL", pecaIssues));
+  guardas.push(guarda("peca-conforme", "Peça existe e está conforme", EtapaValidacao.PECA, "MODEL", pecaIssues));
 
   const qtdIssues: ValidationIssue[] = [];
   if (!Number.isFinite(input.quantidade) || !Number.isInteger(input.quantidade) || input.quantidade <= 0) {
     qtdIssues.push(erro("QUANTIDADE_INVALIDA", "quantidade", "A quantidade deve ser um número inteiro maior que 0."));
   }
-  guardas.push(guarda("quantidade", "Quantidade inteira > 0", "lote", "CONTROLLER", qtdIssues));
+  guardas.push(guarda("quantidade", "Quantidade inteira > 0", EtapaValidacao.LOTE, "CONTROLLER", qtdIssues));
 
   const defIssues: ValidationIssue[] = [];
   if (!Number.isFinite(input.defeituosos) || !Number.isInteger(input.defeituosos) || input.defeituosos < 0) {
@@ -106,7 +107,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
       erro("DEFEITUOSOS_EXCEDEM_QUANTIDADE", "defeituosos", "Defeituosos não pode ser maior que a quantidade produzida."),
     );
   }
-  guardas.push(guarda("defeituosos", "0 ≤ defeituosos ≤ quantidade", "lote", "CONTROLLER", defIssues));
+  guardas.push(guarda("defeituosos", "0 ≤ defeituosos ≤ quantidade", EtapaValidacao.LOTE, "CONTROLLER", defIssues));
 
   const tempIssues: ValidationIssue[] = [];
   if (!Number.isFinite(input.temperatura)) {
@@ -121,7 +122,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
     );
   }
   guardas.push(
-    guarda("temperatura", `Temperatura ${regras.temperaturaMin}–${regras.temperaturaMax} °C`, "lote", "CONTROLLER", tempIssues),
+    guarda("temperatura", `Temperatura ${regras.temperaturaMin}–${regras.temperaturaMax} °C`, EtapaValidacao.LOTE, "CONTROLLER", tempIssues),
   );
 
   const presIssues: ValidationIssue[] = [];
@@ -136,7 +137,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
       ),
     );
   }
-  guardas.push(guarda("pressao", `Pressão ${regras.pressaoMin}–${regras.pressaoMax} bar`, "lote", "CONTROLLER", presIssues));
+  guardas.push(guarda("pressao", `Pressão ${regras.pressaoMin}–${regras.pressaoMax} bar`, EtapaValidacao.LOTE, "CONTROLLER", presIssues));
 
   if (ctx.estrita) {
     const margemIssues: ValidationIssue[] = [];
@@ -153,7 +154,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
     if (presIssues.length === 0 && (input.pressao < regras.pressaoMin + margemP || input.pressao > regras.pressaoMax - margemP)) {
       margemIssues.push(erro("MARGEM_PRESSAO", "pressao", "Validação estrita: pressão a menos de 5% do limite da faixa."));
     }
-    guardas.push(guarda("margem-seguranca", "[Estrita] Margem de 5% dos limites", "lote", "CONTROLLER", margemIssues));
+    guardas.push(guarda("margem-seguranca", "[Estrita] Margem de 5% dos limites", EtapaValidacao.LOTE, "CONTROLLER", margemIssues));
   }
 
   const erros = guardas.flatMap((g) => g.issues);

@@ -4,14 +4,15 @@
  * Dono: Membro 2 (Controlador). Validação e criação de steps ficam
  * separadas para que este arquivo concentre o fluxo integrado.
  */
-import type {
-  AIProvider,
-  AnalysisEngine,
-  ConfigIA,
-  EventBus,
-  Repository,
-  SaidaBrutaIA,
+import {
+  type AIProvider,
+  type AnalysisEngine,
+  type ConfigIA,
+  type EventBus,
+  type Repository,
+  type SaidaBrutaIA,
 } from "./contracts";
+import { EtapaValidacao } from "./types";
 import { emitirLog } from "./eventBus";
 import { validarEntrada } from "./guardClauses";
 import { ehErroIA, validarSaidaIA } from "./ia";
@@ -119,7 +120,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     agora: agora(),
   });
 
-  for (const etapa of ["campos", "peca", "lote"] as const) {
+  for (const etapa of Object.values(EtapaValidacao)) {
     const guardas = validacao.guardas.filter((guard) => guard.etapa === etapa);
     const issues = guardas.flatMap((guard) => guard.issues);
     const meta = ROTULO_ETAPA[etapa];
@@ -132,7 +133,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
         inicio,
         {
           ...(issues.length ? { motivo: issues.map((issue) => issue.mensagem).join(" ") } : {}),
-          entrada: etapa === "peca" ? (peca ?? input.pecaId) : dados,
+          entrada: etapa === EtapaValidacao.PECA ? (peca ?? input.pecaId) : dados,
           saida: guardas,
         },
       ),
