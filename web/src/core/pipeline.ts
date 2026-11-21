@@ -222,6 +222,18 @@ export const MOTIVO_INTERRUPCAO = "Interrompido: validação reprovada (validar 
 
 const relogioPadrao = (): number => (typeof performance !== "undefined" ? performance.now() : Date.now());
 
+enum PipelineStepId {
+  Entrada = "entrada",
+  ValidarCampos = "validar-campos",
+  ValidarPeca = "validar-peca",
+  ValidarLote = "validar-lote",
+  Ia = "ia",
+  Confianca = "confianca",
+  Fallback = "fallback",
+  Classificar = "classificar",
+  Persistir = "persistir",
+}
+
 const ROTULO_ETAPA: Record<EtapaValidacao, { id: string; label: string; modulo: ModuloSistema }> = {
   campos: { id: PipelineStepId.ValidarCampos, label: "Validar campos obrigatórios", modulo: ModuloSistema.CONTROLLER },
   peca: { id: PipelineStepId.ValidarPeca, label: "Validar peça", modulo: ModuloSistema.MODEL },
