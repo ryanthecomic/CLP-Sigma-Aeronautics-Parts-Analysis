@@ -58,7 +58,7 @@ export interface DadosProducaoAero {
   temperatura: number;
   /** Pressão do processo em bar. */
   pressao: number;
-}
+} 
 
 /**
  * Regras de análise configuráveis.

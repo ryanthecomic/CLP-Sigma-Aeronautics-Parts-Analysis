@@ -9,7 +9,7 @@ import { criarRepositorioLocal, criarStorageMemoria } from "../core/repository";
 import { classificar, REGRAS_PADRAO, validarPeca } from "../core/rules";
 import { CENARIOS, compararCenario } from "../core/scenarios";
 import { FLAGS_PADRAO, PECAS_SEED } from "../core/seed";
-import type { DadosProducaoAero } from "../core/types";
+import { ModoFalhaIA, type DadosProducaoAero } from "../core/types";
 
 const LOTE_BASE: DadosProducaoAero = {
   id: "L-TESTE",
@@ -68,7 +68,7 @@ describe("Membro 4 — IA mock determinística e modos de falha", () => {
       dados: LOTE_BASE,
       peca: PECAS_SEED[0]!,
       regras: REGRAS_PADRAO,
-      config: { modoFalha: "NENHUM" as const },
+      config: { modoFalha: ModoFalhaIA.NENHUM as const },
       seed: 123,
     };
     expect(simularIA(req)).toEqual(simularIA(req));
@@ -76,13 +76,13 @@ describe("Membro 4 — IA mock determinística e modos de falha", () => {
 
   it("reproduz os modos de falha EXCECAO, TIMEOUT, BAIXA_CONFIANCA e SAIDA_INVALIDA", () => {
     const base = { dados: LOTE_BASE, peca: PECAS_SEED[0]!, regras: REGRAS_PADRAO, seed: 42 };
-    expect(() => simularIA({ ...base, config: { modoFalha: "EXCECAO" } })).toThrow();
-    expect(() => simularIA({ ...base, config: { modoFalha: "TIMEOUT" } })).toThrow();
+    expect(() => simularIA({ ...base, config: { modoFalha: ModoFalhaIA.EXCECAO} })).toThrow();
+    expect(() => simularIA({ ...base, config: { modoFalha: ModoFalhaIA.TIMEOUT } })).toThrow();
 
-    const baixa = simularIA({ ...base, config: { modoFalha: "BAIXA_CONFIANCA" } });
+    const baixa = simularIA({ ...base, config: { modoFalha: ModoFalhaIA.BAIXA_CONFIANCA } });
     expect(baixa.confianca).toBeLessThan(REGRAS_PADRAO.confiancaMinimaIA);
 
-    const invalida = simularIA({ ...base, config: { modoFalha: "SAIDA_INVALIDA" } });
+    const invalida = simularIA({ ...base, config: { modoFalha: ModoFalhaIA.SAIDA_INVALIDA } });
     expect(validarSaidaIA(invalida).length).toBeGreaterThan(0);
   });
 });
@@ -127,7 +127,7 @@ describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
         bus,
         regras: REGRAS_PADRAO,
         flags: FLAGS_PADRAO,
-        configIA: { modoFalha: "NENHUM" },
+        configIA: { modoFalha: ModoFalhaIA.NENHUM },
         seed: 42,
       },
     );
@@ -136,6 +136,54 @@ describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
     expect(resultado.origem).toBe("VALIDACAO");
     expect(resultado.status).toBe("CRITICO");
     expect(resultado.erros.some((e) => e.codigo === "TEMPERATURA_FORA_DA_FAIXA")).toBe(true);
+    expect(resultado.passos.find((step) => step.id === "ia")).toMatchObject({
+      status: "IGNORADO",
+      motivo: expect.stringContaining("validação reprovada"),
+    });
+    expect(resultado.passos.every((step) => Number.isFinite(step.duracaoMs))).toBe(true);
+  });
+
+  it("executa validar, IA, confiança, fallback, classificação e persistência em ordem", () => {
+    const repo = criarRepositorioLocal(criarStorageMemoria());
+    repo.carregar();
+    const bus = criarEventBus();
+    const traces: string[] = [];
+    bus.on((evento) => {
+      if (evento.tipo === "step") traces.push(evento.traceId);
+      if (evento.tipo === "log" && evento.log.traceId) traces.push(evento.log.traceId);
+    });
+
+    const resultado = runAnalysis(
+      {
+        pecaId: "P-001",
+        dataLote: "2026-10-15",
+        quantidade: 500,
+        defeituosos: 5,
+        horas: 10,
+        temperatura: 200,
+        pressao: 6.5,
+      },
+      { repositorio: repo, flags: FLAGS_PADRAO, bus },
+    );
+
+    expect(resultado.passos.map((step) => step.id)).toEqual([
+      "entrada",
+      "validar-campos",
+      "validar-peca",
+      "validar-lote",
+      "ia",
+      "confianca",
+      "fallback",
+      "classificar",
+      "persistir",
+    ]);
+    expect(resultado.passos.every((step) => step.duracaoMs >= 0)).toBe(true);
+    expect(resultado.passos.find((step) => step.id === "confianca")).toMatchObject({
+      status: "SUCESSO",
+    });
+    expect(repo.listarResultados()[0]?.traceId).toBe(resultado.traceId);
+    expect(traces.length).toBeGreaterThan(0);
+    expect(new Set(traces)).toEqual(new Set([resultado.traceId]));
   });
 
   it("correlaciona steps e logs com o traceId da execução", () => {

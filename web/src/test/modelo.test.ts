@@ -6,7 +6,7 @@ import { executarPipeline } from "../core/pipeline";
 import { criarRepositorioLocal, criarStorageMemoria } from "../core/repository";
 import { classificar, REGRAS_PADRAO, validarCadastroPeca, validarPeca } from "../core/rules";
 import { FLAGS_PADRAO } from "../core/seed";
-import type { PecaAeronautica } from "../core/types";
+import { type PecaAeronautica, ModoFalhaIA} from "../core/types";
 
 const PECA_BASE: PecaAeronautica = {
   id: "P-100",
@@ -137,7 +137,7 @@ describe("Membro 1 — contrato do Modelo", () => {
           bus: criarEventBus(),
           regras: REGRAS_PADRAO,
           flags: FLAGS_PADRAO,
-          configIA: { modoFalha: "NENHUM" },
+          configIA: { modoFalha: ModoFalhaIA.NENHUM },
           seed: 42,
         },
       );

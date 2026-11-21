@@ -9,7 +9,8 @@ import type { AIProvider, ConfigIA, ModeloIAMeta, RequisicaoIA, SaidaBrutaIA, Ti
 import { calcularMetricas } from "./calculations";
 import { gerarRecomendacao } from "./fallback";
 import { classificar } from "./rules";
-import type { RegrasAnaliseAero } from "./types";
+import { type RegrasAnaliseAero } from "./types";
+import { ModoFalhaIA, } from "./types";
 import { arredondar, criarPrng, hashTexto, limitar } from "./utils";
 
 export const MODELO_IA_META: ModeloIAMeta = {
@@ -19,7 +20,7 @@ export const MODELO_IA_META: ModeloIAMeta = {
   status: "carregado",
 };
 
-export const CONFIG_IA_PADRAO: ConfigIA = { modoFalha: "NENHUM", timeoutMs: 2000 };
+export const CONFIG_IA_PADRAO: ConfigIA = { modoFalha: ModoFalhaIA.NENHUM, timeoutMs: 2000 };
 
 /** Erro lançado pela IA nos modos EXCECAO e TIMEOUT. */
 export class ErroIA extends Error {
