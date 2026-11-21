@@ -14,7 +14,7 @@ import type { ReactModuleManifest } from "./types";
 import { viewDashboardManifest } from "./view-dashboard/manifest";
 import { viewEntradaManifest } from "./view-entrada/manifest";
 
-export const MODULOS: readonly ReactModuleManifest[] = [
+export const MODULOS: readonly ReactModuleManifest[] = Object.freeze([
   modeloManifest,
   controladorManifest,
   calculosManifest,
@@ -22,7 +22,7 @@ export const MODULOS: readonly ReactModuleManifest[] = [
   repositorioManifest,
   viewEntradaManifest,
   viewDashboardManifest,
-];
+]);
 
 export function encontrarModulo(id: string | undefined): ReactModuleManifest | undefined {
   if (!id) return undefined;

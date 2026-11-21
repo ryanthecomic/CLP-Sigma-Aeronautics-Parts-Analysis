@@ -60,7 +60,7 @@ export interface DadosProducaoAero {
   temperatura: number;
   /** Pressão do processo em bar. */
   pressao: number;
-}
+} 
 
 /**
  * Regras de análise configuráveis.
@@ -201,3 +201,14 @@ export interface DadosPersistidos {
   flags: FlagsDev;
 }
 
+export enum PipelineStepId {
+  Entrada = "entrada",
+  ValidarCampos = "validar-campos",
+  ValidarPeca = "validar-peca",
+  ValidarLote = "validar-lote",
+  Ia = "ia",
+  Confianca = "confianca",
+  Fallback = "fallback",
+  Classificar = "classificar",
+  Persistir = "persistir",
+}

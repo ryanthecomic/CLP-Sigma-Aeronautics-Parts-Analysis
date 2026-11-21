@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { beforeEach, describe, expect, it } from "vitest";
 import { routes } from "../App";
+import { MODULOS } from "../modules/registry";
 import { useAppStore } from "../store";
 
 function renderRota(caminhoInicial: string) {
@@ -18,6 +19,8 @@ describe("Testes de componentes e integração de fluxo (React Testing Library)"
 
   it("renderiza o Hub em /dev com os 7 módulos da Equipe Sigma", async () => {
     renderRota("/dev");
+    expect(MODULOS).toHaveLength(7);
+    expect(new Set(MODULOS.map((modulo) => modulo.id)).size).toBe(7);
     expect(await screen.findByText("Hub de Módulos — Equipe Sigma")).toBeInTheDocument();
     expect(screen.getAllByText("Abrir sandbox")).toHaveLength(7);
     expect(screen.getByRole("heading", { name: "Cálculos & Fallback" })).toBeInTheDocument();
@@ -62,6 +65,23 @@ describe("Testes de componentes e integração de fluxo (React Testing Library)"
       expect(estado.passos.length).toBeGreaterThan(0);
       expect(estado.logs.length).toBeGreaterThan(0);
       expect(estado.resultados.length).toBe(1);
+    });
+  });
+
+  it("rejeita o preset inválido no sandbox do Controlador sem chamar a IA", async () => {
+    const user = userEvent.setup();
+    renderRota("/dev/modulo/controlador");
+
+    await user.click(await screen.findByRole("button", { name: /Preset inválido/i }));
+    await user.click(screen.getByRole("button", { name: /Executar validação/i }));
+
+    await waitFor(() => {
+      const estado = useAppStore.getState();
+      expect(estado.ultimoResultado?.origem).toBe("VALIDACAO");
+      expect(estado.ultimoResultado?.status).toBe("CRITICO");
+      expect(estado.ultimoResultado?.erros.length).toBeGreaterThan(0);
+      expect(estado.passos.some((passo) => passo.id === "ia" && passo.status === "IGNORADO")).toBe(true);
+      expect(estado.traceAtual).toBe(estado.ultimoResultado?.traceId);
     });
   });
 
@@ -118,5 +138,27 @@ describe("Testes de componentes e integração de fluxo (React Testing Library)"
       expect(await screen.findByText(/Sandbox:/i)).toBeInTheDocument();
       unmount();
     }
+  });
+
+  it("abre as rotas globais do Modo Desenvolvedor", async () => {
+    const paginas = [
+      ["/dev/pipeline", "Pipeline de Execução"],
+      ["/dev/estado", "Estado & Contratos"],
+      ["/dev/logs", "Logs do Event Bus"],
+      ["/dev/flags", "Flags & Cenários"],
+      ["/dev/docs", "Documentação da Equipe Sigma"],
+    ] as const;
+
+    for (const [rota, titulo] of paginas) {
+      const { unmount } = renderRota(rota);
+      expect(await screen.findByRole("heading", { name: titulo })).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it("exibe estado vazio para o id de módulo desconhecido", async () => {
+    renderRota("/dev/modulo/modulo-inexistente");
+    expect(await screen.findByText('Módulo "modulo-inexistente" não encontrado')).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ir para o Hub" })).toHaveAttribute("href", "/dev");
   });
 });
