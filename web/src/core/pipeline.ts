@@ -25,16 +25,21 @@ import {
   relogioPadrao,
   ROTULO_ETAPA,
 } from "./pipelineSteps";
-import type {
-  AnaliseInput,
-  FlagsDev,
-  MetricasProducao,
+import {
+  ModoFalhaIA,
   ModuloSistema,
-  PecaAeronautica,
-  PipelineStep,
-  RegrasAnaliseAero,
-  ResultadoAnalise,
+  NivelLog,
+  OrigemResultado,
+  PipelineStepId,
   StatusPasso,
+  StatusQualidade,
+  type AnaliseInput,
+  type FlagsDev,
+  type MetricasProducao,
+  type PecaAeronautica,
+  type PipelineStep,
+  type RegrasAnaliseAero,
+  type ResultadoAnalise,
 } from "./types";
 import { gerarId as gerarIdPadrao } from "./utils";
 
@@ -70,7 +75,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   const traceId = novoId("trace");
   const passos: PipelineStep[] = [];
   const log = (
-    nivel: "DEBUG" | "INFO" | "WARN" | "ERROR",
+    nivel: NivelLog,
     modulo: ModuloSistema,
     mensagem: string,
     payload?: unknown,
@@ -93,7 +98,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     criarPasso(relogio, id, label, modulo, status, inicio, extra, duracaoExtraMs);
 
   bus.emit({ tipo: "analise:inicio", traceId, input });
-  log("INFO", "VIEW", "Análise solicitada.", input);
+  log(NivelLog.INFO, ModuloSistema.VIEW, "Análise solicitada.", input);
 
   let inicio = relogio();
   const dados = criarDadosLote(input, novoId);
@@ -147,9 +152,9 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
       id: novoId("res"),
       loteId: dados.id,
       ...METRICAS_ZERADAS,
-      status: "CRITICO",
-      recomendacao: `Entrada rejeitada: ${validacao.erros.map((erro) => erro.mensagem).join(" ")} Corrija os dados e envie novamente.`,
-      origem: "VALIDACAO",
+      status: StatusQualidade.CRITICO,
+      recomendacao: `Entrada rejeitada: ${validacao.erros.map((e) => e.mensagem).join(" ")} Corrija os dados e envie novamente.`,
+      origem: OrigemResultado.VALIDACAO,
       confianca: 0,
       traceId,
       passos: [],
@@ -173,10 +178,10 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
       duracaoMs: 0,
       motivo: motivoFallback,
     });
-    log("INFO", "IA", "IA ignorada: flag forçar fallback ativa.");
+    log(NivelLog.INFO, ModuloSistema.IA, "IA ignorada: flag forçar fallback ativa.");
   } else {
     const config: ConfigIA = flags.forcarFalhaIA
-      ? { ...deps.configIA, modoFalha: "EXCECAO" }
+      ? { ...deps.configIA, modoFalha: ModoFalhaIA.EXCECAO }
       : deps.configIA;
     const latencia = flags.latenciaSimulada ? (deps.latenciaMs ?? 0) : 0;
     const requisicao = { dados, peca: peca as PecaAeronautica, regras, config, seed: deps.seed };
@@ -214,16 +219,8 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
       const mensagem = erro instanceof Error ? erro.message : String(erro);
       motivoFallback = `IA falhou (${tipo}): ${mensagem}`;
       const extra = tipo === "TIMEOUT" ? (config.timeoutMs ?? 0) : latencia;
-      registrar(passo(
-        PIPELINE_STEP_IDS.Ia,
-        "Inferência da IA",
-        "IA",
-        "ERRO",
-        inicio,
-        { motivo: motivoFallback, entrada: { config, seed: deps.seed } },
-        extra,
-      ));
-      log("ERROR", "IA", motivoFallback);
+      registrar(passo(PipelineStepId.Ia, "Inferência da IA", ModuloSistema.IA, StatusPasso.ERRO, inicio, { motivo: motivoFallback, entrada: { config, seed: deps.seed } }, extra));
+      log(NivelLog.ERROR, ModuloSistema.IA, motivoFallback);
     }
   }
 
@@ -231,34 +228,13 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   if (saidaIA) {
     if (saidaIA.confianca < regras.confiancaMinimaIA) {
       motivoFallback = `Confiança ${saidaIA.confianca.toFixed(2)} abaixo do mínimo ${regras.confiancaMinimaIA.toFixed(2)}.`;
-      registrar(passo(
-        PIPELINE_STEP_IDS.Confianca,
-        "Verificar confiança",
-        "CONTROLLER",
-        "ALERTA",
-        inicio,
-        { motivo: motivoFallback, saida: { confianca: saidaIA.confianca } },
-      ));
-      log("WARN", "CONTROLLER", motivoFallback);
+      registrar(passo(PipelineStepId.Confianca, "Verificar confiança", ModuloSistema.CONTROLLER, StatusPasso.ALERTA, inicio, { motivo: motivoFallback, saida: { confianca: saidaIA.confianca } }));
+      log(NivelLog.WARN, ModuloSistema.CONTROLLER, motivoFallback);
     } else {
-      registrar(passo(
-        PIPELINE_STEP_IDS.Confianca,
-        "Verificar confiança",
-        "CONTROLLER",
-        "SUCESSO",
-        inicio,
-        { saida: { confianca: saidaIA.confianca, minimo: regras.confiancaMinimaIA } },
-      ));
+      registrar(passo(PipelineStepId.Confianca, "Verificar confiança", ModuloSistema.CONTROLLER, StatusPasso.SUCESSO, inicio, { saida: { confianca: saidaIA.confianca, minimo: regras.confiancaMinimaIA } }));
     }
   } else {
-    registrar({
-      id: PIPELINE_STEP_IDS.Confianca,
-      label: "Verificar confiança",
-      modulo: "CONTROLLER",
-      status: "IGNORADO",
-      duracaoMs: 0,
-      motivo: "Sem saída válida da IA.",
-    });
+    registrar({ id: PipelineStepId.Confianca, label: "Verificar confiança", modulo: ModuloSistema.CONTROLLER, status: StatusPasso.IGNORADO, duracaoMs: 0, motivo: "Sem saída válida da IA." });
   }
 
   inicio = relogio();
@@ -278,15 +254,8 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     };
     recomendacao = fallback.recomendacao;
     confianca = fallback.confianca;
-    registrar(passo(
-      PIPELINE_STEP_IDS.Fallback,
-      "Fallback determinístico",
-      "CALC",
-      "SUCESSO",
-      inicio,
-      { motivo: motivoFallback, entrada: dados, saida: metricas },
-    ));
-    log("WARN", "CALC", `Fallback acionado. ${motivoFallback ?? ""}`.trim(), metricas);
+    registrar(passo(PipelineStepId.Fallback, "Fallback determinístico", ModuloSistema.CALC, StatusPasso.SUCESSO, inicio, { motivo: motivoFallback, entrada: dados, saida: metricas }));
+    log(NivelLog.WARN, ModuloSistema.CALC, `Fallback acionado. ${motivoFallback ?? ""}`.trim(), metricas);
   } else {
     metricas = {
       produtividade: saidaIA.produtividade,
@@ -297,34 +266,18 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     };
     recomendacao = saidaIA.recomendacao;
     confianca = saidaIA.confianca;
-    registrar({
-      id: PIPELINE_STEP_IDS.Fallback,
-      label: "Fallback determinístico",
-      modulo: "CALC",
-      status: "IGNORADO",
-      duracaoMs: 0,
-      motivo: "IA respondeu com confiança suficiente.",
-    });
+    registrar({ id: PipelineStepId.Fallback, label: "Fallback determinístico", modulo: ModuloSistema.CALC, status: StatusPasso.IGNORADO, duracaoMs: 0, motivo: "IA respondeu com confiança suficiente." });
   }
 
   inicio = relogio();
   const status = engine.classificar(metricas, regras);
   if (usarFallback) recomendacao = engine.gerarRecomendacao(status, metricas, dados, regras);
-  registrar(passo(
-    PIPELINE_STEP_IDS.Classificar,
-    "Classificar resultado",
-    "MODEL",
-    status === "CRITICO" ? "ALERTA" : "SUCESSO",
-    inicio,
-    {
-      ...(status === "CRITICO" ? { motivo: "Resultado crítico: alerta de qualidade." } : {}),
-      entrada: metricas,
-      saida: { status },
-    },
-  ));
-  if (status === "CRITICO") {
-    log("WARN", "MODEL", `Alerta de qualidade: lote ${dados.id} classificado como CRÍTICO.`);
-  }
+  registrar(passo(PipelineStepId.Classificar, "Classificar resultado", ModuloSistema.MODEL, status === StatusQualidade.CRITICO ? StatusPasso.ALERTA : StatusPasso.SUCESSO, inicio, {
+    ...(status === StatusQualidade.CRITICO ? { motivo: "Resultado crítico: alerta de qualidade." } : {}),
+    entrada: metricas,
+    saida: { status },
+  }));
+  if (status === StatusQualidade.CRITICO) log(NivelLog.WARN, ModuloSistema.MODEL, `Alerta de qualidade: lote ${dados.id} classificado como CRÍTICO.`);
 
   const resultado: ResultadoAnalise = {
     id: novoId("res"),
@@ -332,7 +285,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     ...metricas,
     status,
     recomendacao,
-    origem: usarFallback ? "FALLBACK" : "IA",
+    origem: usarFallback ? OrigemResultado.FALLBACK : OrigemResultado.IA,
     confianca,
     traceId,
     passos: [],
@@ -342,33 +295,24 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   return persistirEFinalizar(resultado, true);
 
   function persistirEFinalizar(r: ResultadoAnalise, salvarLote: boolean): ResultadoAnalise {
-    const inicioPersistencia = relogio();
-    const stepPersistencia = passo(
-      PIPELINE_STEP_IDS.Persistir,
-      "Persistir resultado",
-      "REPO",
-      "SUCESSO",
-      inicioPersistencia,
-      {
-        entrada: { resultadoId: r.id, loteId: r.loteId, salvarLote },
-        ...(salvarLote ? {} : { motivo: "Apenas a rejeição foi registrada (lote inválido não é salvo)." }),
-      },
-    );
-    const final: ResultadoAnalise = { ...r, passos: [...passos, stepPersistencia] };
-
+    const inicio = relogio();
+    const stepOk = passo(PipelineStepId.Persistir, "Persistir resultado", ModuloSistema.REPO, StatusPasso.SUCESSO, inicio, {
+      entrada: { resultadoId: r.id, loteId: r.loteId, salvarLote },
+      ...(salvarLote ? {} : { motivo: "Apenas a rejeição foi registrada (lote inválido não é salvo)." }),
+    });
+    const final: ResultadoAnalise = { ...r, passos: [...passos, stepOk] };
     try {
       if (salvarLote) repositorio.registrarLote(dados);
       repositorio.registrarResultado(final);
-      registrar(stepPersistencia);
-      log("INFO", "REPO", `Resultado ${r.id} persistido.`);
-    } catch (erro) {
-      const motivo = `Falha ao persistir: ${erro instanceof Error ? erro.message : String(erro)}`;
-      registrar({ ...stepPersistencia, status: "ERRO", motivo });
+      registrar(stepOk);
+      log(NivelLog.INFO, ModuloSistema.REPO, `Resultado ${r.id} persistido.`);
+    } catch (e) {
+      const motivo = `Falha ao persistir: ${e instanceof Error ? e.message : String(e)}`;
+      registrar({ ...stepOk, status: StatusPasso.ERRO, motivo });
       final.passos = [...passos];
-      log("ERROR", "REPO", motivo);
+      log(NivelLog.ERROR, ModuloSistema.REPO, motivo);
     }
-
-    log("INFO", "CONTROLLER", `Análise concluída: ${final.status} (origem ${final.origem}).`, {
+    log(NivelLog.INFO, ModuloSistema.CONTROLLER, `Análise concluída: ${final.status} (origem ${final.origem}).`, {
       status: final.status,
       origem: final.origem,
     });

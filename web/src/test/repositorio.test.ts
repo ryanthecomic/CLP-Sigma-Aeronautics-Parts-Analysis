@@ -9,13 +9,13 @@ import {
 } from "../core/repository";
 import { REGRAS_PADRAO } from "../core/rules";
 import { criarSeed, FLAGS_PADRAO, LOTES_SEED, PECAS_SEED } from "../core/seed";
-import type { DadosProducaoAero, PecaAeronautica, ResultadoAnalise } from "../core/types";
+import { OrigemResultado, StatusQualidade, type DadosProducaoAero, type PecaAeronautica, type ResultadoAnalise } from "../core/types";
 
 const RESULTADO_EXEMPLO: ResultadoAnalise = {
   id: "RES-500",
   loteId: "L-001",
-  status: "OTIMO",
-  origem: "IA",
+  status: StatusQualidade.OTIMO,
+  origem: OrigemResultado.IA,
   confianca: 0.94,
   produtividade: 50,
   taxaDefeitos: 1,

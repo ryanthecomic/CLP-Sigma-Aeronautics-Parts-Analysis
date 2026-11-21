@@ -6,12 +6,13 @@
 import type { AnalysisEngine } from "./contracts";
 import { calcularMetricas, desvioNormalizado } from "./calculations";
 import { classificar, classificarDefeitos, classificarEficiencia } from "./rules";
-import type {
-  DadosProducaoAero,
-  MetricasProducao,
-  RegrasAnaliseAero,
-  ResultadoAnalise,
-  StatusQualidade,
+import {
+  OrigemResultado,
+  type DadosProducaoAero,
+  type MetricasProducao,
+  type RegrasAnaliseAero,
+  type ResultadoAnalise,
+  type StatusQualidade,
 } from "./types";
 
 type Desvio = "DEFEITOS" | "EFICIENCIA" | "TEMPERATURA" | "PRESSAO" | "NENHUM";
@@ -88,7 +89,7 @@ export function executarFallback(dados: DadosProducaoAero, regras: RegrasAnalise
     ...metricas,
     status,
     recomendacao: gerarRecomendacao(status, metricas, dados, regras),
-    origem: "FALLBACK",
+    origem: OrigemResultado.FALLBACK,
     confianca: CONFIANCA_FALLBACK,
     traceId: "",
     passos: [],
