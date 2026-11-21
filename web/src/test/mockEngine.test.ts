@@ -138,6 +138,32 @@ describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
     expect(resultado.erros.some((e) => e.codigo === "TEMPERATURA_FORA_DA_FAIXA")).toBe(true);
   });
 
+  it("correlaciona steps e logs com o traceId da execução", () => {
+    const repo = criarRepositorioLocal(criarStorageMemoria());
+    repo.carregar();
+    const bus = criarEventBus();
+    const eventos: Array<{ tipo: string; traceId?: string }> = [];
+    bus.on((evento) => {
+      if (evento.tipo === "log") eventos.push({ tipo: evento.tipo, traceId: evento.log.traceId });
+      else eventos.push({ tipo: evento.tipo, traceId: evento.traceId });
+    });
+
+    const resultado = runAnalysis({
+      pecaId: "P-001",
+      dataLote: "2026-10-15",
+      quantidade: 500,
+      defeituosos: 5,
+      horas: 10,
+      temperatura: 200,
+      pressao: 6.5,
+    }, { repositorio: repo, bus });
+
+    expect(resultado.traceId).toBeTruthy();
+    expect(resultado.passos.length).toBeGreaterThan(0);
+    expect(eventos.filter((evento) => evento.tipo === "step").every((evento) => evento.traceId === resultado.traceId)).toBe(true);
+    expect(eventos.filter((evento) => evento.tipo === "log").every((evento) => evento.traceId === resultado.traceId)).toBe(true);
+  });
+
   it("executa os 4 cenários prontos e todos batem com o esperado", () => {
     const repo = criarRepositorioLocal(criarStorageMemoria());
     repo.carregar();
