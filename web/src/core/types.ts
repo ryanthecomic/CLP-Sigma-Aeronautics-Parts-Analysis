@@ -201,3 +201,8 @@ export interface DadosPersistidos {
   flags: FlagsDev;
 }
 
+export enum EtapaValidacao {
+  CAMPOS = "campos",
+  PECA = "peca",
+  LOTE = "lote",
+}

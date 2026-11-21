@@ -19,6 +19,7 @@ import type {
   StatusQualidade,
   NivelLog,
   StatusPasso,
+  EtapaValidacao,
 } from "./types";
 
 /* ------------------------------------------------------------------ */
@@ -27,11 +28,16 @@ import type {
 
 /** Um passo observável do pipeline de análise. */
 export interface PipelineStep {
+  /** Identificador estável do passo, por exemplo `validar-temperatura` ou `ia`. */
   id: string;
+  /** Texto apresentado no sandbox e na página Pipeline. */
   label: string;
   modulo: ModuloSistema;
+  /** Estado final ou atual da etapa. */
   status: StatusPasso;
+  /** Tempo de execução em milissegundos. */
   duracaoMs: number;
+  /** Explica rejeição, alerta, interrupção ou fallback. */
   motivo?: string;
   entrada?: unknown;
   saida?: unknown;
@@ -60,15 +66,15 @@ export interface LogEvent {
 /* Guard clauses                                                       */
 /* ------------------------------------------------------------------ */
 
-/** Etapa do pipeline em que a guard clause roda. */
-export type EtapaValidacao = "campos" | "peca" | "lote";
-
 /** Resultado de uma guard clause executada pelo Controlador. */
 export interface GuardResult {
+  /** ID estável da guard clause. */
   id: string;
+  /** Texto apresentado no sandbox. */
   label: string;
   etapa: EtapaValidacao;
   modulo: ModuloSistema;
+  /** Verdadeiro somente quando a guard não produz issues. */
   aprovado: boolean;
   /** Presente quando a guard reprovou. */
   issues: ValidationIssue[];
@@ -76,8 +82,10 @@ export interface GuardResult {
 
 /** Resultado da validação completa ("validar primeiro"). */
 export interface ResultadoValidacao {
+  /** Verdadeiro somente quando todas as guard clauses são aprovadas. */
   valido: boolean;
   guardas: GuardResult[];
+  /** Lista plana de erros usada para rejeição e persistência da origem VALIDACAO. */
   erros: ValidationIssue[];
 }
 
@@ -185,7 +193,9 @@ export type BusEvent =
 export type BusHandler = (evento: BusEvent) => void;
 
 export interface EventBus {
+  /** Emite um evento síncrono para os handlers ativos. */
   emit(evento: BusEvent): void;
+  /** Inscreve um handler e retorna uma função para cancelar a inscrição. */
   on(handler: BusHandler): () => void;
 }
 

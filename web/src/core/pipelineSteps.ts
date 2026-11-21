@@ -1,4 +1,4 @@
-import type { EtapaValidacao } from "./contracts";
+import { EtapaValidacao } from "./types";
 import type {
   AnaliseInput,
   DadosProducaoAero,
@@ -32,9 +32,9 @@ export const METRICAS_ZERADAS: MetricasProducao = {
 };
 
 export const ROTULO_ETAPA: Record<EtapaValidacao, { id: string; label: string; modulo: ModuloSistema }> = {
-  campos: { id: PIPELINE_STEP_IDS.ValidarCampos, label: "Validar campos obrigatórios", modulo: "CONTROLLER" },
-  peca: { id: PIPELINE_STEP_IDS.ValidarPeca, label: "Validar peça", modulo: "MODEL" },
-  lote: { id: PIPELINE_STEP_IDS.ValidarLote, label: "Validar lote (faixas)", modulo: "CONTROLLER" },
+  [EtapaValidacao.CAMPOS]: { id: PIPELINE_STEP_IDS.ValidarCampos, label: "Validar campos obrigatórios", modulo: "CONTROLLER" },
+  [EtapaValidacao.PECA]: { id: PIPELINE_STEP_IDS.ValidarPeca, label: "Validar peça", modulo: "MODEL" },
+  [EtapaValidacao.LOTE]: { id: PIPELINE_STEP_IDS.ValidarLote, label: "Validar lote (faixas)", modulo: "CONTROLLER" },
 };
 
 export function relogioPadrao(): number {
