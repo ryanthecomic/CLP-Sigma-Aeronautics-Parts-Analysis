@@ -4,7 +4,7 @@ import { criarEventBus } from "../core/eventBus";
 import { executarFallback } from "../core/fallback";
 import { simularIA, validarSaidaIA } from "../core/ia";
 import { runAnalysis } from "../core/mockEngine";
-import { executarPipeline } from "../core/pipeline";
+import { executarPipeline, validarEntrada } from "../core/pipeline";
 import { criarRepositorioLocal, criarStorageMemoria } from "../core/repository";
 import { classificar, REGRAS_PADRAO, validarPeca } from "../core/rules";
 import { CENARIOS, compararCenario } from "../core/scenarios";
@@ -99,6 +99,43 @@ describe("Membro 5 — Repositório local e recuperação de JSON corrompido", (
 });
 
 describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
+  it("reprova cada grupo de guard clauses com código específico", () => {
+    const base = {
+      pecaId: "P-001",
+      dataLote: "2026-10-15",
+      quantidade: 500,
+      defeituosos: 5,
+      horas: 10,
+      temperatura: 200,
+      pressao: 6.5,
+    };
+    const casos = [
+      { input: { ...base, pecaId: "" }, codigo: "CAMPO_OBRIGATORIO" },
+      { input: { ...base, dataLote: "2026-02-31" }, codigo: "DATA_FORMATO_INVALIDO" },
+      { input: { ...base, temperatura: 300 }, codigo: "TEMPERATURA_FORA_DA_FAIXA" },
+      { input: { ...base, pressao: 20 }, codigo: "PRESSAO_FORA_DA_FAIXA" },
+      { input: { ...base, quantidade: 0 }, codigo: "QUANTIDADE_INVALIDA" },
+      { input: { ...base, quantidade: 500.5 }, codigo: "QUANTIDADE_INVALIDA" },
+      { input: { ...base, defeituosos: -1 }, codigo: "DEFEITUOSOS_INVALIDOS" },
+      { input: { ...base, defeituosos: 600 }, codigo: "DEFEITUOSOS_EXCEDEM_QUANTIDADE" },
+      { input: { ...base, horas: 0 }, codigo: "HORAS_INVALIDAS" },
+      { input: { ...base, horas: Number.NaN }, codigo: "HORAS_INVALIDAS" },
+      { input: { ...base, temperatura: Number.POSITIVE_INFINITY }, codigo: "TEMPERATURA_OBRIGATORIA" },
+      { input: { ...base, pressao: Number.NaN }, codigo: "PRESSAO_OBRIGATORIA" },
+    ] as const;
+
+    for (const caso of casos) {
+      const resultado = validarEntrada(caso.input, {
+        regras: REGRAS_PADRAO,
+        peca: PECAS_SEED[0],
+        estrita: false,
+        agora: new Date("2026-11-08T12:00:00Z"),
+      });
+      expect(resultado.valido).toBe(false);
+      expect(resultado.erros.some((erro) => erro.codigo === caso.codigo)).toBe(true);
+    }
+  });
+
   it("interrompe antes da IA quando os dados são inválidos (IA nunca é chamada)", () => {
     const repo = criarRepositorioLocal(criarStorageMemoria());
     repo.carregar();

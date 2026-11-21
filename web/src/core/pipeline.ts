@@ -26,6 +26,7 @@ import {
   ModuloSistema,
   NivelLog,
   OrigemResultado,
+  PipelineStepId,
   StatusPasso,
   StatusQualidade,
 } from "./types";
@@ -72,17 +73,30 @@ function erro(codigo: string, campo: string, mensagem: string, modulo: ModuloSis
 
 const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
 
+function textoObrigatorio(valor: unknown): valor is string {
+  return typeof valor === "string" && valor.trim().length > 0;
+}
+
+function dataIsoValida(valor: unknown): valor is string {
+  if (typeof valor !== "string" || !DATA_ISO.test(valor)) return false;
+  const [ano, mes, dia] = valor.split("-").map(Number);
+  const data = new Date(Date.UTC(ano, mes - 1, dia));
+  return data.getUTCFullYear() === ano && data.getUTCMonth() === mes - 1 && data.getUTCDate() === dia;
+}
+
 /** Executa todas as guard clauses e retorna o resultado detalhado. */
 export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): ResultadoValidacao {
   const { regras } = ctx;
   const guardas: GuardResult[] = [];
+  const pecaId = textoObrigatorio(input.pecaId) ? input.pecaId.trim() : "";
+  const dataLote = textoObrigatorio(input.dataLote) ? input.dataLote.trim() : "";
 
   // Etapa 1 — campos obrigatórios.
   const camposIssues: ValidationIssue[] = [];
-  if (!input.pecaId?.trim()) camposIssues.push(erro("CAMPO_OBRIGATORIO", "pecaId", "A peça é obrigatória."));
-  if (!input.dataLote?.trim()) {
+  if (!pecaId) camposIssues.push(erro("CAMPO_OBRIGATORIO", "pecaId", "A peça é obrigatória."));
+  if (!dataLote) {
     camposIssues.push(erro("CAMPO_OBRIGATORIO", "dataLote", "A data do lote é obrigatória."));
-  } else if (!DATA_ISO.test(input.dataLote) || Number.isNaN(Date.parse(input.dataLote))) {
+  } else if (!dataIsoValida(dataLote)) {
     camposIssues.push(erro("DATA_FORMATO_INVALIDO", "dataLote", "A data do lote deve estar no formato AAAA-MM-DD."));
   }
   guardas.push(guarda("campos-obrigatorios", "Peça e data informadas", "campos", ModuloSistema.CONTROLLER, camposIssues));
@@ -95,7 +109,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
 
   if (ctx.estrita) {
     const dataIssues: ValidationIssue[] = [];
-    const data = Date.parse(`${input.dataLote}T00:00:00`);
+    const data = Date.parse(`${dataLote}T00:00:00Z`);
     if (Number.isFinite(data) && data > ctx.agora.getTime()) {
       dataIssues.push(erro("DATA_FUTURA", "dataLote", "Validação estrita: a data do lote não pode ser futura."));
     }
@@ -104,9 +118,9 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
 
   // Etapa 2 — peça.
   const pecaIssues: ValidationIssue[] = [];
-  if (input.pecaId?.trim()) {
+  if (pecaId) {
     if (!ctx.peca) {
-      pecaIssues.push(erro("PECA_NAO_ENCONTRADA", "pecaId", `A peça ${input.pecaId} não foi encontrada.`, ModuloSistema.MODEL));
+      pecaIssues.push(erro("PECA_NAO_ENCONTRADA", "pecaId", `A peça ${pecaId} não foi encontrada.`, ModuloSistema.MODEL));
     } else {
       pecaIssues.push(...validarPeca(ctx.peca));
     }
@@ -246,6 +260,8 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   const novoId = deps.gerarId ?? gerarIdPadrao;
 
   const traceId = novoId("trace");
+  const pecaId = textoObrigatorio(input.pecaId) ? input.pecaId.trim() : "";
+  const dataLote = textoObrigatorio(input.dataLote) ? input.dataLote.trim() : "";
   const passos: PipelineStep[] = [];
   const log = (
     nivel: NivelLog,
@@ -281,11 +297,11 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
 
   // 1. Entrada.
   let t = relogio();
-  const loteId = input.loteId?.trim() ? input.loteId : novoId("L");
+  const loteId = textoObrigatorio(input.loteId) ? input.loteId.trim() : novoId("L");
   const dados: DadosProducaoAero = {
     id: loteId,
-    pecaId: input.pecaId,
-    dataLote: input.dataLote,
+    pecaId,
+    dataLote,
     quantidade: input.quantidade,
     defeituosos: input.defeituosos,
     horas: input.horas,
@@ -296,7 +312,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
 
   // 2–4. Validação (guard clauses).
   t = relogio();
-  const peca = input.pecaId ? repositorio.buscarPeca(input.pecaId) : undefined;
+  const peca = pecaId ? repositorio.buscarPeca(pecaId) : undefined;
   const validacao = validarEntrada(input, { regras, peca, estrita: flags.validacaoEstrita, agora: agora() });
   for (const etapa of ["campos", "peca", "lote"] as const) {
     const guardas = validacao.guardas.filter((g) => g.etapa === etapa);
@@ -305,7 +321,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     registrar(
       passo(meta.id, meta.label, meta.modulo, issues.length ? StatusPasso.ERRO : StatusPasso.SUCESSO, t, {
         ...(issues.length ? { motivo: issues.map((i) => i.mensagem).join(" ") } : {}),
-        entrada: etapa === "peca" ? (peca ?? input.pecaId) : dados,
+        entrada: etapa === "peca" ? (peca ?? pecaId) : dados,
         saida: guardas,
       }),
     );
