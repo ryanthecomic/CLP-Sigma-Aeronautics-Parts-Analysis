@@ -65,6 +65,23 @@ describe("Testes de componentes e integração de fluxo (React Testing Library)"
     });
   });
 
+  it("rejeita o preset inválido no sandbox do Controlador sem chamar a IA", async () => {
+    const user = userEvent.setup();
+    renderRota("/dev/modulo/controlador");
+
+    await user.click(await screen.findByRole("button", { name: /Preset inválido/i }));
+    await user.click(screen.getByRole("button", { name: /Executar validação/i }));
+
+    await waitFor(() => {
+      const estado = useAppStore.getState();
+      expect(estado.ultimoResultado?.origem).toBe("VALIDACAO");
+      expect(estado.ultimoResultado?.status).toBe("CRITICO");
+      expect(estado.ultimoResultado?.erros.length).toBeGreaterThan(0);
+      expect(estado.passos.some((passo) => passo.id === "ia" && passo.status === "IGNORADO")).toBe(true);
+      expect(estado.traceAtual).toBe(estado.ultimoResultado?.traceId);
+    });
+  });
+
   it("executa uma análise completa no Preview do Operador e bloqueia dados inválidos no formulário", async () => {
     const user = userEvent.setup();
     renderRota("/operador");
