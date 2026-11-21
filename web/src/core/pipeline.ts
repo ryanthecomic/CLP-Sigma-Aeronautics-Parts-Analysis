@@ -21,17 +21,24 @@ import type {
 import { emitirLog } from "./eventBus";
 import { ehErroIA, validarSaidaIA } from "./ia";
 import { validarPeca } from "./rules";
+import {
+  ModoFalhaIA,
+  ModuloSistema,
+  NivelLog,
+  OrigemResultado,
+  PipelineStepId,
+  StatusPasso,
+  StatusQualidade,
+} from "./types";
 import type {
   AnaliseInput,
   DadosProducaoAero,
   FlagsDev,
   MetricasProducao,
-  ModuloSistema,
   PecaAeronautica,
   PipelineStep,
   RegrasAnaliseAero,
   ResultadoAnalise,
-  StatusPasso,
   ValidationIssue,
 } from "./types";
 import { arredondar, gerarId as gerarIdPadrao } from "./utils";
@@ -60,61 +67,74 @@ function guarda(
   return { id, label, etapa, modulo, aprovado: issues.length === 0, issues };
 }
 
-function erro(codigo: string, campo: string, mensagem: string, modulo: ModuloSistema = "CONTROLLER"): ValidationIssue {
+function erro(codigo: string, campo: string, mensagem: string, modulo: ModuloSistema = ModuloSistema.CONTROLLER): ValidationIssue {
   return { codigo, campo, mensagem, modulo };
 }
 
 const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
 
+function textoObrigatorio(valor: unknown): valor is string {
+  return typeof valor === "string" && valor.trim().length > 0;
+}
+
+function dataIsoValida(valor: unknown): valor is string {
+  if (typeof valor !== "string" || !DATA_ISO.test(valor)) return false;
+  const [ano, mes, dia] = valor.split("-").map(Number);
+  const data = new Date(Date.UTC(ano, mes - 1, dia));
+  return data.getUTCFullYear() === ano && data.getUTCMonth() === mes - 1 && data.getUTCDate() === dia;
+}
+
 /** Executa todas as guard clauses e retorna o resultado detalhado. */
 export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): ResultadoValidacao {
   const { regras } = ctx;
   const guardas: GuardResult[] = [];
+  const pecaId = textoObrigatorio(input.pecaId) ? input.pecaId.trim() : "";
+  const dataLote = textoObrigatorio(input.dataLote) ? input.dataLote.trim() : "";
 
   // Etapa 1 — campos obrigatórios.
   const camposIssues: ValidationIssue[] = [];
-  if (!input.pecaId?.trim()) camposIssues.push(erro("CAMPO_OBRIGATORIO", "pecaId", "A peça é obrigatória."));
-  if (!input.dataLote?.trim()) {
+  if (!pecaId) camposIssues.push(erro("CAMPO_OBRIGATORIO", "pecaId", "A peça é obrigatória."));
+  if (!dataLote) {
     camposIssues.push(erro("CAMPO_OBRIGATORIO", "dataLote", "A data do lote é obrigatória."));
-  } else if (!DATA_ISO.test(input.dataLote) || Number.isNaN(Date.parse(input.dataLote))) {
+  } else if (!dataIsoValida(dataLote)) {
     camposIssues.push(erro("DATA_FORMATO_INVALIDO", "dataLote", "A data do lote deve estar no formato AAAA-MM-DD."));
   }
-  guardas.push(guarda("campos-obrigatorios", "Peça e data informadas", "campos", "CONTROLLER", camposIssues));
+  guardas.push(guarda("campos-obrigatorios", "Peça e data informadas", "campos", ModuloSistema.CONTROLLER, camposIssues));
 
   const horasIssues: ValidationIssue[] = [];
   if (!Number.isFinite(input.horas) || input.horas <= 0) {
     horasIssues.push(erro("HORAS_INVALIDAS", "horas", "As horas de produção devem ser maiores que 0."));
   }
-  guardas.push(guarda("horas", "Horas de produção > 0", "campos", "CONTROLLER", horasIssues));
+  guardas.push(guarda("horas", "Horas de produção > 0", "campos", ModuloSistema.CONTROLLER, horasIssues));
 
   if (ctx.estrita) {
     const dataIssues: ValidationIssue[] = [];
-    const data = Date.parse(`${input.dataLote}T00:00:00`);
+    const data = Date.parse(`${dataLote}T00:00:00Z`);
     if (Number.isFinite(data) && data > ctx.agora.getTime()) {
       dataIssues.push(erro("DATA_FUTURA", "dataLote", "Validação estrita: a data do lote não pode ser futura."));
     }
-    guardas.push(guarda("data-nao-futura", "[Estrita] Data não futura", "campos", "CONTROLLER", dataIssues));
+    guardas.push(guarda("data-nao-futura", "[Estrita] Data não futura", "campos", ModuloSistema.CONTROLLER, dataIssues));
   }
 
   // Etapa 2 — peça.
   const pecaIssues: ValidationIssue[] = [];
-  if (input.pecaId?.trim()) {
+  if (pecaId) {
     if (!ctx.peca) {
-      pecaIssues.push(erro("PECA_NAO_ENCONTRADA", "pecaId", `A peça ${input.pecaId} não foi encontrada.`, "MODEL"));
+      pecaIssues.push(erro("PECA_NAO_ENCONTRADA", "pecaId", `A peça ${pecaId} não foi encontrada.`, ModuloSistema.MODEL));
     } else {
       pecaIssues.push(...validarPeca(ctx.peca));
     }
   } else {
-    pecaIssues.push(erro("PECA_NAO_INFORMADA", "pecaId", "Não há peça para validar.", "MODEL"));
+    pecaIssues.push(erro("PECA_NAO_INFORMADA", "pecaId", "Não há peça para validar.", ModuloSistema.MODEL));
   }
-  guardas.push(guarda("peca-conforme", "Peça existe e está conforme", "peca", "MODEL", pecaIssues));
+  guardas.push(guarda("peca-conforme", "Peça existe e está conforme", "peca", ModuloSistema.MODEL, pecaIssues));
 
   // Etapa 3 — lote.
   const qtdIssues: ValidationIssue[] = [];
   if (!Number.isFinite(input.quantidade) || !Number.isInteger(input.quantidade) || input.quantidade <= 0) {
     qtdIssues.push(erro("QUANTIDADE_INVALIDA", "quantidade", "A quantidade deve ser um número inteiro maior que 0."));
   }
-  guardas.push(guarda("quantidade", "Quantidade inteira > 0", "lote", "CONTROLLER", qtdIssues));
+  guardas.push(guarda("quantidade", "Quantidade inteira > 0", "lote", ModuloSistema.CONTROLLER, qtdIssues));
 
   const defIssues: ValidationIssue[] = [];
   if (!Number.isFinite(input.defeituosos) || !Number.isInteger(input.defeituosos) || input.defeituosos < 0) {
@@ -124,7 +144,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
       erro("DEFEITUOSOS_EXCEDEM_QUANTIDADE", "defeituosos", "Defeituosos não pode ser maior que a quantidade produzida."),
     );
   }
-  guardas.push(guarda("defeituosos", "0 ≤ defeituosos ≤ quantidade", "lote", "CONTROLLER", defIssues));
+  guardas.push(guarda("defeituosos", "0 ≤ defeituosos ≤ quantidade", "lote", ModuloSistema.CONTROLLER, defIssues));
 
   const tempIssues: ValidationIssue[] = [];
   if (!Number.isFinite(input.temperatura)) {
@@ -139,7 +159,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
     );
   }
   guardas.push(
-    guarda("temperatura", `Temperatura ${regras.temperaturaMin}–${regras.temperaturaMax} °C`, "lote", "CONTROLLER", tempIssues),
+    guarda("temperatura", `Temperatura ${regras.temperaturaMin}–${regras.temperaturaMax} °C`, "lote", ModuloSistema.CONTROLLER, tempIssues),
   );
 
   const presIssues: ValidationIssue[] = [];
@@ -154,7 +174,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
       ),
     );
   }
-  guardas.push(guarda("pressao", `Pressão ${regras.pressaoMin}–${regras.pressaoMax} bar`, "lote", "CONTROLLER", presIssues));
+  guardas.push(guarda("pressao", `Pressão ${regras.pressaoMin}–${regras.pressaoMax} bar`, "lote", ModuloSistema.CONTROLLER, presIssues));
 
   if (ctx.estrita) {
     const margemIssues: ValidationIssue[] = [];
@@ -171,7 +191,7 @@ export function validarEntrada(input: AnaliseInput, ctx: ContextoValidacao): Res
     if (presIssues.length === 0 && (input.pressao < regras.pressaoMin + margemP || input.pressao > regras.pressaoMax - margemP)) {
       margemIssues.push(erro("MARGEM_PRESSAO", "pressao", "Validação estrita: pressão a menos de 5% do limite da faixa."));
     }
-    guardas.push(guarda("margem-seguranca", "[Estrita] Margem de 5% dos limites", "lote", "CONTROLLER", margemIssues));
+    guardas.push(guarda("margem-seguranca", "[Estrita] Margem de 5% dos limites", "lote", ModuloSistema.CONTROLLER, margemIssues));
   }
 
   const erros = guardas.flatMap((g) => g.issues);
@@ -203,9 +223,9 @@ export const MOTIVO_INTERRUPCAO = "Interrompido: validação reprovada (validar 
 const relogioPadrao = (): number => (typeof performance !== "undefined" ? performance.now() : Date.now());
 
 const ROTULO_ETAPA: Record<EtapaValidacao, { id: string; label: string; modulo: ModuloSistema }> = {
-  campos: { id: "validar-campos", label: "Validar campos obrigatórios", modulo: "CONTROLLER" },
-  peca: { id: "validar-peca", label: "Validar peça", modulo: "MODEL" },
-  lote: { id: "validar-lote", label: "Validar lote (faixas)", modulo: "CONTROLLER" },
+  campos: { id: PipelineStepId.ValidarCampos, label: "Validar campos obrigatórios", modulo: ModuloSistema.CONTROLLER },
+  peca: { id: PipelineStepId.ValidarPeca, label: "Validar peça", modulo: ModuloSistema.MODEL },
+  lote: { id: PipelineStepId.ValidarLote, label: "Validar lote (faixas)", modulo: ModuloSistema.CONTROLLER },
 };
 
 const METRICAS_ZERADAS: MetricasProducao = {
@@ -228,9 +248,11 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   const novoId = deps.gerarId ?? gerarIdPadrao;
 
   const traceId = novoId("trace");
+  const pecaId = textoObrigatorio(input.pecaId) ? input.pecaId.trim() : "";
+  const dataLote = textoObrigatorio(input.dataLote) ? input.dataLote.trim() : "";
   const passos: PipelineStep[] = [];
   const log = (
-    nivel: "DEBUG" | "INFO" | "WARN" | "ERROR",
+    nivel: NivelLog,
     modulo: ModuloSistema,
     mensagem: string,
     payload?: unknown,
@@ -259,60 +281,60 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   });
 
   bus.emit({ tipo: "analise:inicio", traceId, input });
-  log("INFO", "VIEW", "Análise solicitada.", input);
+  log(NivelLog.INFO, ModuloSistema.VIEW, "Análise solicitada.", input);
 
   // 1. Entrada.
   let t = relogio();
-  const loteId = input.loteId?.trim() ? input.loteId : novoId("L");
+  const loteId = textoObrigatorio(input.loteId) ? input.loteId.trim() : novoId("L");
   const dados: DadosProducaoAero = {
     id: loteId,
-    pecaId: input.pecaId,
-    dataLote: input.dataLote,
+    pecaId,
+    dataLote,
     quantidade: input.quantidade,
     defeituosos: input.defeituosos,
     horas: input.horas,
     temperatura: input.temperatura,
     pressao: input.pressao,
   };
-  registrar(passo("entrada", "Receber entrada do operador", "VIEW", "SUCESSO", t, { entrada: input, saida: dados }));
+  registrar(passo(PipelineStepId.Entrada, "Receber entrada do operador", ModuloSistema.VIEW, StatusPasso.SUCESSO, t, { entrada: input, saida: dados }));
 
   // 2–4. Validação (guard clauses).
   t = relogio();
-  const peca = input.pecaId ? repositorio.buscarPeca(input.pecaId) : undefined;
+  const peca = pecaId ? repositorio.buscarPeca(pecaId) : undefined;
   const validacao = validarEntrada(input, { regras, peca, estrita: flags.validacaoEstrita, agora: agora() });
   for (const etapa of ["campos", "peca", "lote"] as const) {
     const guardas = validacao.guardas.filter((g) => g.etapa === etapa);
     const issues = guardas.flatMap((g) => g.issues);
     const meta = ROTULO_ETAPA[etapa];
     registrar(
-      passo(meta.id, meta.label, meta.modulo, issues.length ? "ERRO" : "SUCESSO", t, {
+      passo(meta.id, meta.label, meta.modulo, issues.length ? StatusPasso.ERRO : StatusPasso.SUCESSO, t, {
         ...(issues.length ? { motivo: issues.map((i) => i.mensagem).join(" ") } : {}),
-        entrada: etapa === "peca" ? (peca ?? input.pecaId) : dados,
+        entrada: etapa === "peca" ? (peca ?? pecaId) : dados,
         saida: guardas,
       }),
     );
-    for (const i of issues) log("WARN", i.modulo, `Guard clause reprovada [${i.codigo}]: ${i.mensagem}`, i);
+    for (const i of issues) log(NivelLog.WARN, i.modulo, `Guard clause reprovada [${i.codigo}]: ${i.mensagem}`, i);
     t = relogio();
   }
 
   if (!validacao.valido) {
     for (const [id, label, modulo] of [
-      ["ia", "Inferência da IA", "IA"],
-      ["confianca", "Verificar confiança", "CONTROLLER"],
-      ["fallback", "Fallback determinístico", "CALC"],
-      ["classificar", "Classificar resultado", "MODEL"],
+      [PipelineStepId.Ia, "Inferência da IA", ModuloSistema.IA],
+      [PipelineStepId.Confianca, "Verificar confiança", ModuloSistema.CONTROLLER],
+      [PipelineStepId.Fallback, "Fallback determinístico", ModuloSistema.CALC],
+      [PipelineStepId.Classificar, "Classificar resultado", ModuloSistema.MODEL],
     ] as const) {
-      registrar({ id, label, modulo, status: "IGNORADO", duracaoMs: 0, motivo: MOTIVO_INTERRUPCAO });
+      registrar({ id, label, modulo, status: StatusPasso.IGNORADO, duracaoMs: 0, motivo: MOTIVO_INTERRUPCAO });
     }
-    log("WARN", "CONTROLLER", `Entrada rejeitada antes da IA (${validacao.erros.length} erro(s)).`, validacao.erros);
+    log(NivelLog.WARN, ModuloSistema.CONTROLLER, `Entrada rejeitada antes da IA (${validacao.erros.length} erro(s)).`, validacao.erros);
 
     const resultado: ResultadoAnalise = {
       id: novoId("res"),
       loteId,
       ...METRICAS_ZERADAS,
-      status: "CRITICO",
+      status: StatusQualidade.CRITICO,
       recomendacao: `Entrada rejeitada: ${validacao.erros.map((e) => e.mensagem).join(" ")} Corrija os dados e envie novamente.`,
-      origem: "VALIDACAO",
+      origem: OrigemResultado.VALIDACAO,
       confianca: 0,
       traceId,
       passos: [],
@@ -328,10 +350,10 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   t = relogio();
   if (flags.forcarFallback) {
     motivoFallback = "Flag \"forçar fallback\" ativa.";
-    registrar({ id: "ia", label: "Inferência da IA", modulo: "IA", status: "IGNORADO", duracaoMs: 0, motivo: motivoFallback });
-    log("INFO", "IA", "IA ignorada: flag forçar fallback ativa.");
+    registrar({ id: PipelineStepId.Ia, label: "Inferência da IA", modulo: ModuloSistema.IA, status: StatusPasso.IGNORADO, duracaoMs: 0, motivo: motivoFallback });
+    log(NivelLog.INFO, ModuloSistema.IA, "IA ignorada: flag forçar fallback ativa.");
   } else {
-    const config: ConfigIA = flags.forcarFalhaIA ? { ...deps.configIA, modoFalha: "EXCECAO" } : deps.configIA;
+    const config: ConfigIA = flags.forcarFalhaIA ? { ...deps.configIA, modoFalha: ModoFalhaIA.EXCECAO } : deps.configIA;
     const latencia = flags.latenciaSimulada ? (deps.latenciaMs ?? 0) : 0;
     const requisicao = { dados, peca: peca as PecaAeronautica, regras, config, seed: deps.seed };
     try {
@@ -339,20 +361,20 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
       const problemas = validarSaidaIA(saida);
       if (problemas.length) {
         motivoFallback = `Saída inválida da IA: ${problemas.join("; ")}.`;
-        registrar(passo("ia", "Inferência da IA", "IA", "ERRO", t, { motivo: motivoFallback, entrada: { config, seed: deps.seed }, saida }, latencia));
-        log("ERROR", "IA", motivoFallback, saida);
+        registrar(passo(PipelineStepId.Ia, "Inferência da IA", ModuloSistema.IA, StatusPasso.ERRO, t, { motivo: motivoFallback, entrada: { config, seed: deps.seed }, saida }, latencia));
+        log(NivelLog.ERROR, ModuloSistema.IA, motivoFallback, saida);
       } else {
         saidaIA = saida;
-        registrar(passo("ia", "Inferência da IA", "IA", "SUCESSO", t, { entrada: { config, seed: deps.seed }, saida }, latencia));
-        log("INFO", "IA", `Inferência concluída com confiança ${saida.confianca.toFixed(2)}.`, saida);
+        registrar(passo(PipelineStepId.Ia, "Inferência da IA", ModuloSistema.IA, StatusPasso.SUCESSO, t, { entrada: { config, seed: deps.seed }, saida }, latencia));
+        log(NivelLog.INFO, ModuloSistema.IA, `Inferência concluída com confiança ${saida.confianca.toFixed(2)}.`, saida);
       }
     } catch (e) {
       const tipo = ehErroIA(e) ? e.tipo : "EXCECAO";
       const mensagem = e instanceof Error ? e.message : String(e);
       motivoFallback = `IA falhou (${tipo}): ${mensagem}`;
       const extra = tipo === "TIMEOUT" ? (config.timeoutMs ?? 0) : latencia;
-      registrar(passo("ia", "Inferência da IA", "IA", "ERRO", t, { motivo: motivoFallback, entrada: { config, seed: deps.seed } }, extra));
-      log("ERROR", "IA", motivoFallback);
+      registrar(passo(PipelineStepId.Ia, "Inferência da IA", ModuloSistema.IA, StatusPasso.ERRO, t, { motivo: motivoFallback, entrada: { config, seed: deps.seed } }, extra));
+      log(NivelLog.ERROR, ModuloSistema.IA, motivoFallback);
     }
   }
 
@@ -361,13 +383,13 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   if (saidaIA) {
     if (saidaIA.confianca < regras.confiancaMinimaIA) {
       motivoFallback = `Confiança ${saidaIA.confianca.toFixed(2)} abaixo do mínimo ${regras.confiancaMinimaIA.toFixed(2)}.`;
-      registrar(passo("confianca", "Verificar confiança", "CONTROLLER", "ALERTA", t, { motivo: motivoFallback, saida: { confianca: saidaIA.confianca } }));
-      log("WARN", "CONTROLLER", motivoFallback);
+      registrar(passo(PipelineStepId.Confianca, "Verificar confiança", ModuloSistema.CONTROLLER, StatusPasso.ALERTA, t, { motivo: motivoFallback, saida: { confianca: saidaIA.confianca } }));
+      log(NivelLog.WARN, ModuloSistema.CONTROLLER, motivoFallback);
     } else {
-      registrar(passo("confianca", "Verificar confiança", "CONTROLLER", "SUCESSO", t, { saida: { confianca: saidaIA.confianca, minimo: regras.confiancaMinimaIA } }));
+      registrar(passo(PipelineStepId.Confianca, "Verificar confiança", ModuloSistema.CONTROLLER, StatusPasso.SUCESSO, t, { saida: { confianca: saidaIA.confianca, minimo: regras.confiancaMinimaIA } }));
     }
   } else {
-    registrar({ id: "confianca", label: "Verificar confiança", modulo: "CONTROLLER", status: "IGNORADO", duracaoMs: 0, motivo: "Sem saída válida da IA." });
+    registrar({ id: PipelineStepId.Confianca, label: "Verificar confiança", modulo: ModuloSistema.CONTROLLER, status: StatusPasso.IGNORADO, duracaoMs: 0, motivo: "Sem saída válida da IA." });
   }
 
   // 7. Fallback.
@@ -387,8 +409,8 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     };
     recomendacao = fb.recomendacao;
     confianca = fb.confianca;
-    registrar(passo("fallback", "Fallback determinístico", "CALC", "SUCESSO", t, { motivo: motivoFallback, entrada: dados, saida: metricas }));
-    log("WARN", "CALC", `Fallback acionado. ${motivoFallback ?? ""}`.trim(), metricas);
+    registrar(passo(PipelineStepId.Fallback, "Fallback determinístico", ModuloSistema.CALC, StatusPasso.SUCESSO, t, { motivo: motivoFallback, entrada: dados, saida: metricas }));
+    log(NivelLog.WARN, ModuloSistema.CALC, `Fallback acionado. ${motivoFallback ?? ""}`.trim(), metricas);
   } else {
     metricas = {
       produtividade: saidaIA.produtividade,
@@ -399,19 +421,19 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     };
     recomendacao = saidaIA.recomendacao;
     confianca = saidaIA.confianca;
-    registrar({ id: "fallback", label: "Fallback determinístico", modulo: "CALC", status: "IGNORADO", duracaoMs: 0, motivo: "IA respondeu com confiança suficiente." });
+    registrar({ id: PipelineStepId.Fallback, label: "Fallback determinístico", modulo: ModuloSistema.CALC, status: StatusPasso.IGNORADO, duracaoMs: 0, motivo: "IA respondeu com confiança suficiente." });
   }
 
   // 8. Classificação.
   t = relogio();
   const status = engine.classificar(metricas, regras);
   if (usarFallback) recomendacao = engine.gerarRecomendacao(status, metricas, dados, regras);
-  registrar(passo("classificar", "Classificar resultado", "MODEL", status === "CRITICO" ? "ALERTA" : "SUCESSO", t, {
-    ...(status === "CRITICO" ? { motivo: "Resultado crítico: alerta de qualidade." } : {}),
+  registrar(passo(PipelineStepId.Classificar, "Classificar resultado", ModuloSistema.MODEL, status === StatusQualidade.CRITICO ? StatusPasso.ALERTA : StatusPasso.SUCESSO, t, {
+    ...(status === StatusQualidade.CRITICO ? { motivo: "Resultado crítico: alerta de qualidade." } : {}),
     entrada: metricas,
     saida: { status },
   }));
-  if (status === "CRITICO") log("WARN", "MODEL", `Alerta de qualidade: lote ${loteId} classificado como CRÍTICO.`);
+  if (status === StatusQualidade.CRITICO) log(NivelLog.WARN, ModuloSistema.MODEL, `Alerta de qualidade: lote ${loteId} classificado como CRÍTICO.`);
 
   const resultado: ResultadoAnalise = {
     id: novoId("res"),
@@ -419,7 +441,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     ...metricas,
     status,
     recomendacao,
-    origem: usarFallback ? "FALLBACK" : "IA",
+    origem: usarFallback ? OrigemResultado.FALLBACK : OrigemResultado.IA,
     confianca,
     traceId,
     passos: [],
@@ -431,7 +453,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   // 9. Persistência (função auxiliar com acesso ao escopo).
   function persistirEFinalizar(r: ResultadoAnalise, salvarLote: boolean): ResultadoAnalise {
     const inicio = relogio();
-    const stepOk = passo("persistir", "Persistir resultado", "REPO", "SUCESSO", inicio, {
+    const stepOk = passo(PipelineStepId.Persistir, "Persistir resultado", ModuloSistema.REPO, StatusPasso.SUCESSO, inicio, {
       entrada: { resultadoId: r.id, loteId: r.loteId, salvarLote },
       ...(salvarLote ? {} : { motivo: "Apenas a rejeição foi registrada (lote inválido não é salvo)." }),
     });
@@ -440,14 +462,14 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
       if (salvarLote) repositorio.registrarLote(dados);
       repositorio.registrarResultado(final);
       registrar(stepOk);
-      log("INFO", "REPO", `Resultado ${r.id} persistido.`);
+      log(NivelLog.INFO, ModuloSistema.REPO, `Resultado ${r.id} persistido.`);
     } catch (e) {
       const motivo = `Falha ao persistir: ${e instanceof Error ? e.message : String(e)}`;
-      registrar({ ...stepOk, status: "ERRO", motivo });
+      registrar({ ...stepOk, status: StatusPasso.ERRO, motivo });
       final.passos = [...passos];
-      log("ERROR", "REPO", motivo);
+      log(NivelLog.ERROR, ModuloSistema.REPO, motivo);
     }
-    log("INFO", "CONTROLLER", `Análise concluída: ${final.status} (origem ${final.origem}).`, {
+    log(NivelLog.INFO, ModuloSistema.CONTROLLER, `Análise concluída: ${final.status} (origem ${final.origem}).`, {
       status: final.status,
       origem: final.origem,
     });
