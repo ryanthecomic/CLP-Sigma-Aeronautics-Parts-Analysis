@@ -28,14 +28,17 @@ export function ControladorSandbox() {
   const [defeituosos, setDefeituosos] = useState("5");
   const [horas, setHoras] = useState("10");
 
+  const numeroDoCampo = (valor: string): number =>
+    valor.trim() === "" ? Number.NaN : Number(valor.replace(",", "."));
+
   const inputAtual: AnaliseInput = {
     pecaId,
     dataLote,
-    temperatura: Number(temperatura),
-    pressao: Number(pressao),
-    quantidade: Number(quantidade),
-    defeituosos: Number(defeituosos),
-    horas: Number(horas),
+    temperatura: numeroDoCampo(temperatura),
+    pressao: numeroDoCampo(pressao),
+    quantidade: numeroDoCampo(quantidade),
+    defeituosos: numeroDoCampo(defeituosos),
+    horas: numeroDoCampo(horas),
   };
 
   const pecaSelecionada = pecas.find((p) => p.id === pecaId);
