@@ -99,6 +99,104 @@ describe("Membro 5 — Repositório local e recuperação de JSON corrompido", (
 });
 
 describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
+  it("rejeita dados inválidos antes da IA e mantém o motivo do bloqueio nos steps", () => {
+    const repo = criarRepositorioLocal(criarStorageMemoria());
+    repo.carregar();
+    const bus = criarEventBus();
+    const inferirSpy = vi.fn();
+
+    const resultado = executarPipeline(
+      {
+        pecaId: "P-001",
+        dataLote: "2026-10-15",
+        quantidade: 500,
+        defeituosos: 600,
+        horas: 10,
+        temperatura: 200,
+        pressao: 6.5,
+      },
+      {
+        repositorio: repo,
+        ia: {
+          meta: { nome: "modelo_ia.bin", versao: "0.1", precisao: 0.9, status: "carregado" },
+          inferir: inferirSpy,
+        },
+        engine: {
+          calcularMetricas,
+          classificar,
+          gerarRecomendacao: () => "ok",
+          executarFallback,
+        },
+        bus,
+        regras: REGRAS_PADRAO,
+        flags: FLAGS_PADRAO,
+        configIA: { modoFalha: "NENHUM" },
+        seed: 42,
+      },
+    );
+
+    expect(inferirSpy).not.toHaveBeenCalled();
+    expect(resultado.origem).toBe("VALIDACAO");
+    expect(resultado.erros.map((erro) => erro.codigo)).toContain("DEFEITUOSOS_EXCEDEM_QUANTIDADE");
+    for (const id of ["ia", "confianca", "fallback", "classificar"]) {
+      const step = resultado.passos.find((item) => item.id === id);
+      expect(step?.status).toBe("IGNORADO");
+      expect(step?.motivo).toContain("validação reprovada");
+    }
+  });
+
+  it("aciona o fallback determinístico quando a IA lança exceção", () => {
+    const repo = criarRepositorioLocal(criarStorageMemoria());
+    repo.carregar();
+
+    const resultado = runAnalysis(
+      {
+        pecaId: "P-001",
+        dataLote: "2026-10-15",
+        quantidade: 500,
+        defeituosos: 5,
+        horas: 10,
+        temperatura: 205,
+        pressao: 6.5,
+      },
+      {
+        repositorio: repo,
+        flags: { ...FLAGS_PADRAO, forcarFalhaIA: true },
+      },
+    );
+
+    expect(resultado.origem).toBe("FALLBACK");
+    expect(resultado.passos.find((step) => step.id === "ia")?.status).toBe("ERRO");
+    expect(resultado.passos.find((step) => step.id === "fallback")?.status).toBe("SUCESSO");
+    expect(resultado.passos.find((step) => step.id === "fallback")?.motivo).toContain("IA falhou");
+  });
+
+  it("aciona o fallback determinístico quando a confiança da IA é baixa", () => {
+    const repo = criarRepositorioLocal(criarStorageMemoria());
+    repo.carregar();
+
+    const resultado = runAnalysis(
+      {
+        pecaId: "P-001",
+        dataLote: "2026-10-15",
+        quantidade: 500,
+        defeituosos: 5,
+        horas: 10,
+        temperatura: 205,
+        pressao: 6.5,
+      },
+      {
+        repositorio: repo,
+        ia: { modoFalha: "BAIXA_CONFIANCA" },
+      },
+    );
+
+    expect(resultado.origem).toBe("FALLBACK");
+    expect(resultado.passos.find((step) => step.id === "confianca")?.status).toBe("ALERTA");
+    expect(resultado.passos.find((step) => step.id === "confianca")?.motivo).toContain("abaixo do mínimo");
+    expect(resultado.passos.find((step) => step.id === "fallback")?.status).toBe("SUCESSO");
+  });
+
   it("interrompe antes da IA quando os dados são inválidos (IA nunca é chamada)", () => {
     const repo = criarRepositorioLocal(criarStorageMemoria());
     repo.carregar();

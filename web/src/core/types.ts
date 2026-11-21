@@ -11,21 +11,23 @@ import type { PipelineStep, ValidationIssue } from "./contracts";
 export type { LogEvent, PipelineStep, ValidationIssue } from "./contracts";
 
 /** Classificação final de qualidade de um lote. */
-export enum StatusQualidade {
-  OTIMO = "OTIMO",
-  ATENCAO = "ATENCAO",
-  CRITICO = "CRITICO",
-}
+export const StatusQualidade = {
+  OTIMO: "OTIMO",
+  ATENCAO: "ATENCAO",
+  CRITICO: "CRITICO",
+} as const;
+export type StatusQualidade = (typeof StatusQualidade)[keyof typeof StatusQualidade];
 
 /** Camadas da arquitetura MVC original (usadas no pipeline e nos logs). */
-export enum ModuloSistema {
-  VIEW = "VIEW",
-  CONTROLLER = "CONTROLLER",
-  MODEL = "MODEL",
-  CALC = "CALC",
-  IA = "IA",
-  REPO = "REPO",
-}
+export const ModuloSistema = {
+  VIEW: "VIEW",
+  CONTROLLER: "CONTROLLER",
+  MODEL: "MODEL",
+  CALC: "CALC",
+  IA: "IA",
+  REPO: "REPO",
+} as const;
+export type ModuloSistema = (typeof ModuloSistema)[keyof typeof ModuloSistema];
 
 export const MODULOS_SISTEMA: readonly ModuloSistema[] = [
   ModuloSistema.VIEW,
@@ -83,20 +85,22 @@ export interface RegrasAnaliseAero {
   eficienciaAtencao: number;
 }
 
-export enum StatusPasso {
-  PENDENTE = "PENDENTE",
-  EXECUTANDO = "EXECUTANDO",
-  SUCESSO = "SUCESSO",
-  ALERTA = "ALERTA",
-  ERRO = "ERRO",
-  IGNORADO = "IGNORADO",
-}
+export const StatusPasso = {
+  PENDENTE: "PENDENTE",
+  EXECUTANDO: "EXECUTANDO",
+  SUCESSO: "SUCESSO",
+  ALERTA: "ALERTA",
+  ERRO: "ERRO",
+  IGNORADO: "IGNORADO",
+} as const;
+export type StatusPasso = (typeof StatusPasso)[keyof typeof StatusPasso];
 
-export enum OrigemResultado {
-  IA = "IA",
-  FALLBACK = "FALLBACK",
-  VALIDACAO = "VALIDACAO",
-}
+export const OrigemResultado = {
+  IA: "IA",
+  FALLBACK: "FALLBACK",
+  VALIDACAO: "VALIDACAO",
+} as const;
+export type OrigemResultado = (typeof OrigemResultado)[keyof typeof OrigemResultado];
 
 /** Métricas de produção calculadas para um lote. */
 export interface MetricasProducao {
@@ -129,12 +133,13 @@ export interface ResultadoAnalise extends MetricasProducao {
   criadoEm: string;
 }
 
-export enum NivelLog {
-  DEBUG = "DEBUG",
-  INFO = "INFO",
-  WARN = "WARN",
-  ERROR = "ERROR",
-}
+export const NivelLog = {
+  DEBUG: "DEBUG",
+  INFO: "INFO",
+  WARN: "WARN",
+  ERROR: "ERROR",
+} as const;
+export type NivelLog = (typeof NivelLog)[keyof typeof NivelLog];
 
 export const NIVEIS_LOG: readonly NivelLog[] = [
   NivelLog.DEBUG,
@@ -156,13 +161,14 @@ export interface FlagsDev {
 }
 
 /** Modos de falha simuláveis da IA mock. */
-export enum ModoFalhaIA {
-  NENHUM = "NENHUM",
-  EXCECAO = "EXCECAO",
-  TIMEOUT = "TIMEOUT",
-  BAIXA_CONFIANCA = "BAIXA_CONFIANCA",
-  SAIDA_INVALIDA = "SAIDA_INVALIDA",
-}
+export const ModoFalhaIA = {
+  NENHUM: "NENHUM",
+  EXCECAO: "EXCECAO",
+  TIMEOUT: "TIMEOUT",
+  BAIXA_CONFIANCA: "BAIXA_CONFIANCA",
+  SAIDA_INVALIDA: "SAIDA_INVALIDA",
+} as const;
+export type ModoFalhaIA = (typeof ModoFalhaIA)[keyof typeof ModoFalhaIA];
 
 export const MODOS_FALHA_IA: readonly ModoFalhaIA[] = [
   ModoFalhaIA.NENHUM,
