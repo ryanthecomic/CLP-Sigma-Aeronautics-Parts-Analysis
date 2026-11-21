@@ -6,20 +6,34 @@
  *
  * Este arquivo é TypeScript puro: não importa React nem nada fora de `core`.
  */
+import type { PipelineStep, ValidationIssue } from "./contracts";
+
+export type { LogEvent, PipelineStep, ValidationIssue } from "./contracts";
 
 /** Classificação final de qualidade de um lote. */
-export type StatusQualidade = "OTIMO" | "ATENCAO" | "CRITICO";
+export enum StatusQualidade {
+  OTIMO = "OTIMO",
+  ATENCAO = "ATENCAO",
+  CRITICO = "CRITICO",
+}
 
 /** Camadas da arquitetura MVC original (usadas no pipeline e nos logs). */
-export type ModuloSistema = "VIEW" | "CONTROLLER" | "MODEL" | "CALC" | "IA" | "REPO";
+export enum ModuloSistema {
+  VIEW = "VIEW",
+  CONTROLLER = "CONTROLLER",
+  MODEL = "MODEL",
+  CALC = "CALC",
+  IA = "IA",
+  REPO = "REPO",
+}
 
 export const MODULOS_SISTEMA: readonly ModuloSistema[] = [
-  "VIEW",
-  "CONTROLLER",
-  "MODEL",
-  "CALC",
-  "IA",
-  "REPO",
+  ModuloSistema.VIEW,
+  ModuloSistema.CONTROLLER,
+  ModuloSistema.MODEL,
+  ModuloSistema.CALC,
+  ModuloSistema.IA,
+  ModuloSistema.REPO,
 ];
 
 /** Peça aeronáutica cadastrada. */
@@ -69,29 +83,20 @@ export interface RegrasAnaliseAero {
   eficienciaAtencao: number;
 }
 
-export type StatusPasso = "PENDENTE" | "EXECUTANDO" | "SUCESSO" | "ALERTA" | "ERRO" | "IGNORADO";
-
-/** Um passo do pipeline de análise. */
-export interface PipelineStep {
-  id: string;
-  label: string;
-  modulo: ModuloSistema;
-  status: StatusPasso;
-  duracaoMs: number;
-  motivo?: string;
-  entrada?: unknown;
-  saida?: unknown;
+export enum StatusPasso {
+  PENDENTE = "PENDENTE",
+  EXECUTANDO = "EXECUTANDO",
+  SUCESSO = "SUCESSO",
+  ALERTA = "ALERTA",
+  ERRO = "ERRO",
+  IGNORADO = "IGNORADO",
 }
 
-/** Erro de validação específico (guard clause reprovada). */
-export interface ValidationIssue {
-  codigo: string;
-  campo: string;
-  mensagem: string;
-  modulo: ModuloSistema;
+export enum OrigemResultado {
+  IA = "IA",
+  FALLBACK = "FALLBACK",
+  VALIDACAO = "VALIDACAO",
 }
-
-export type OrigemResultado = "IA" | "FALLBACK" | "VALIDACAO";
 
 /** Métricas de produção calculadas para um lote. */
 export interface MetricasProducao {
@@ -124,20 +129,19 @@ export interface ResultadoAnalise extends MetricasProducao {
   criadoEm: string;
 }
 
-export type NivelLog = "DEBUG" | "INFO" | "WARN" | "ERROR";
-
-export const NIVEIS_LOG: readonly NivelLog[] = ["DEBUG", "INFO", "WARN", "ERROR"];
-
-/** Evento de log emitido pelo event bus. */
-export interface LogEvent {
-  id: string;
-  timestamp: string;
-  nivel: NivelLog;
-  modulo: ModuloSistema;
-  mensagem: string;
-  traceId?: string;
-  payload?: unknown;
+export enum NivelLog {
+  DEBUG = "DEBUG",
+  INFO = "INFO",
+  WARN = "WARN",
+  ERROR = "ERROR",
 }
+
+export const NIVEIS_LOG: readonly NivelLog[] = [
+  NivelLog.DEBUG,
+  NivelLog.INFO,
+  NivelLog.WARN,
+  NivelLog.ERROR,
+];
 
 /** Flags do Modo Desenvolvedor que alteram o motor mock. */
 export interface FlagsDev {
@@ -152,14 +156,20 @@ export interface FlagsDev {
 }
 
 /** Modos de falha simuláveis da IA mock. */
-export type ModoFalhaIA = "NENHUM" | "EXCECAO" | "TIMEOUT" | "BAIXA_CONFIANCA" | "SAIDA_INVALIDA";
+export enum ModoFalhaIA {
+  NENHUM = "NENHUM",
+  EXCECAO = "EXCECAO",
+  TIMEOUT = "TIMEOUT",
+  BAIXA_CONFIANCA = "BAIXA_CONFIANCA",
+  SAIDA_INVALIDA = "SAIDA_INVALIDA",
+}
 
 export const MODOS_FALHA_IA: readonly ModoFalhaIA[] = [
-  "NENHUM",
-  "EXCECAO",
-  "TIMEOUT",
-  "BAIXA_CONFIANCA",
-  "SAIDA_INVALIDA",
+  ModoFalhaIA.NENHUM,
+  ModoFalhaIA.EXCECAO,
+  ModoFalhaIA.TIMEOUT,
+  ModoFalhaIA.BAIXA_CONFIANCA,
+  ModoFalhaIA.SAIDA_INVALIDA,
 ];
 
 /** Entrada de uma análise (o que o operador informa). */

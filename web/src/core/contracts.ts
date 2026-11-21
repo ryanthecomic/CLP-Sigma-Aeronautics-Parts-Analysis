@@ -10,19 +10,51 @@ import type {
   DadosPersistidos,
   DadosProducaoAero,
   FlagsDev,
-  LogEvent,
   MetricasProducao,
   ModoFalhaIA,
   ModuloSistema,
   PecaAeronautica,
-  PipelineStep,
   RegrasAnaliseAero,
   ResultadoAnalise,
   StatusQualidade,
-  ValidationIssue,
+  NivelLog,
+  StatusPasso,
 } from "./types";
 
-export type { LogEvent, PipelineStep, ValidationIssue };
+/* ------------------------------------------------------------------ */
+/* Contratos transversais                                              */
+/* ------------------------------------------------------------------ */
+
+/** Um passo observável do pipeline de análise. */
+export interface PipelineStep {
+  id: string;
+  label: string;
+  modulo: ModuloSistema;
+  status: StatusPasso;
+  duracaoMs: number;
+  motivo?: string;
+  entrada?: unknown;
+  saida?: unknown;
+}
+
+/** Erro estruturado produzido por uma guard clause. */
+export interface ValidationIssue {
+  codigo: string;
+  campo: string;
+  mensagem: string;
+  modulo: ModuloSistema;
+}
+
+/** Evento de log correlacionável com uma execução por meio do traceId. */
+export interface LogEvent {
+  id: string;
+  timestamp: string;
+  nivel: NivelLog;
+  modulo: ModuloSistema;
+  mensagem: string;
+  traceId?: string;
+  payload?: unknown;
+}
 
 /* ------------------------------------------------------------------ */
 /* Guard clauses                                                       */
