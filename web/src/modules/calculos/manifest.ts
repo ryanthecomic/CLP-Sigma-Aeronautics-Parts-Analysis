@@ -8,7 +8,7 @@ export const calculosManifest: ReactModuleManifest = {
   descricao: "Estatísticas determinísticas de produção, fallback e recomendação textual.",
   status: "pronto",
   camada: "CALC",
-  contratos: ["AnalysisEngine", "MetricasProducao", "ResultadoAnalise"],
+  contratos: ["AnalysisEngine", "DadosProducaoAero", "MetricasProducao", "ResultadoAnalise", "StatusQualidade"],
   sandbox: lazy(() => import("./sandbox")),
 };
 

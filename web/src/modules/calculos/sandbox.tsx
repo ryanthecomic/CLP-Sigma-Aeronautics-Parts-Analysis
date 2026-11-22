@@ -1,15 +1,51 @@
 import { Calculator } from "lucide-react";
 import { useState } from "react";
 import { calcularMetricas } from "../../core/calculations";
-import { executarFallback } from "../../core/fallback";
+import { executarFallback, principalDesvio, ROTULOS_DESVIO } from "../../core/fallback";
 import type { DadosProducaoAero } from "../../core/types";
 import { MetricTile, ResultCard } from "../../components/result/ResultCard";
+import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { CodeBlock } from "../../components/ui/CodeBlock";
 import { Input } from "../../components/ui/Input";
 import { useRegras } from "../../hooks/useDados";
 import { useModule } from "../../hooks/useModule";
+
+interface CenarioCalculo {
+  rotulo: string;
+  valores: {
+    quantidade: string;
+    defeituosos: string;
+    horas: string;
+    temperatura: string;
+    pressao: string;
+  };
+}
+
+/** Cenários rápidos para demonstrar os três status e a borda térmica. */
+const CENARIOS_CALCULO: readonly CenarioCalculo[] = [
+  {
+    rotulo: "Ótimo",
+    valores: { quantidade: "500", defeituosos: "5", horas: "10", temperatura: "200", pressao: "6.5" },
+  },
+  {
+    rotulo: "Atenção",
+    valores: { quantidade: "100", defeituosos: "4", horas: "2", temperatura: "200", pressao: "6.5" },
+  },
+  {
+    rotulo: "Crítico (defeitos)",
+    valores: { quantidade: "100", defeituosos: "20", horas: "2", temperatura: "200", pressao: "6.5" },
+  },
+  {
+    rotulo: "Crítico (eficiência)",
+    valores: { quantidade: "10", defeituosos: "0", horas: "10", temperatura: "200", pressao: "6.5" },
+  },
+  {
+    rotulo: "Borda térmica",
+    valores: { quantidade: "500", defeituosos: "0", horas: "10", temperatura: "250", pressao: "6.5" },
+  },
+];
 
 export function CalculosSandbox() {
   const { regras } = useRegras();
@@ -33,6 +69,15 @@ export function CalculosSandbox() {
 
   const metricas = calcularMetricas(dados, regras);
   const resultadoFallback = executarFallback(dados, regras);
+  const desvio = principalDesvio(metricas, dados, regras);
+
+  const aplicarCenario = (cenario: CenarioCalculo) => {
+    setQuantidade(cenario.valores.quantidade);
+    setDefeituosos(cenario.valores.defeituosos);
+    setHoras(cenario.valores.horas);
+    setTemperatura(cenario.valores.temperatura);
+    setPressao(cenario.valores.pressao);
+  };
 
   const registrarNosLogs = () => {
     log("INFO", `Cálculo determinístico executado: status ${resultadoFallback.status}.`, {
@@ -59,6 +104,22 @@ export function CalculosSandbox() {
           }
         >
           <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">Cenários rápidos</p>
+              <div className="flex flex-wrap gap-1.5">
+                {CENARIOS_CALCULO.map((cenario) => (
+                  <Button
+                    key={cenario.rotulo}
+                    variante="fantasma"
+                    tamanho="sm"
+                    className="border border-borda"
+                    onClick={() => aplicarCenario(cenario)}
+                  >
+                    {cenario.rotulo}
+                  </Button>
+                ))}
+              </div>
+            </div>
             <Input
               rotulo="Quantidade produzida"
               type="number"
@@ -106,7 +167,7 @@ export function CalculosSandbox() {
           descricao="Fórmulas puras, determinísticas e sem dependência da IA."
           className="lg:col-span-2"
         >
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             <MetricTile
               rotulo="Produtividade"
               valor={`${metricas.produtividade} pç/h`}
@@ -127,6 +188,20 @@ export function CalculosSandbox() {
               valor={`${metricas.conformidade}%`}
               subtitulo="100 − taxa de defeitos"
             />
+            <MetricTile
+              rotulo="Previsão de falhas"
+              valor={`${metricas.previsaoFalhas}%`}
+              subtitulo="defeitos + desvio T/P"
+            />
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <Badge tom="info">Desvio principal: {ROTULOS_DESVIO[desvio]}</Badge>
+            <span>
+              Status do fallback: <strong className="text-slate-200">{resultadoFallback.status}</strong>
+            </span>
+            <span>
+              Origem: <strong className="text-slate-200">{resultadoFallback.origem}</strong>
+            </span>
           </div>
           <div className="mt-4">
             <CodeBlock titulo="Saída de calcularMetricas" valor={metricas} alturaMax="max-h-48" />

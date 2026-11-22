@@ -14,7 +14,30 @@ import type {
   StatusQualidade,
 } from "./types";
 
-type Desvio = "DEFEITOS" | "EFICIENCIA" | "TEMPERATURA" | "PRESSAO" | "NENHUM";
+export type Desvio = "DEFEITOS" | "EFICIENCIA" | "TEMPERATURA" | "PRESSAO" | "NENHUM";
+
+/** Rótulos legíveis do desvio principal (usados nos sandboxes e no operador). */
+export const ROTULOS_DESVIO: Record<Desvio, string> = {
+  DEFEITOS: "Taxa de defeitos",
+  EFICIENCIA: "Eficiência abaixo da meta",
+  TEMPERATURA: "Temperatura próxima do limite",
+  PRESSAO: "Pressão próxima do limite",
+  NENHUM: "Nenhum desvio relevante",
+};
+
+/** Peso da taxa de defeitos: 0 no ótimo, 1 na borda de atenção e > 1 no crítico. */
+function pesoDefeitos(metricas: MetricasProducao, regras: RegrasAnaliseAero): number {
+  if (classificarDefeitos(metricas.taxaDefeitos, regras) === "OTIMO") return 0;
+  if (regras.taxaDefeitosAtencao <= 0) return 1;
+  return metricas.taxaDefeitos / regras.taxaDefeitosAtencao;
+}
+
+/** Peso da eficiência: 0 no ótimo e cresce conforme o afastamento da meta. */
+function pesoEficiencia(metricas: MetricasProducao, regras: RegrasAnaliseAero): number {
+  if (classificarEficiencia(metricas.eficiencia, regras) === "OTIMO") return 0;
+  if (regras.eficienciaOtimo <= 0) return 1;
+  return Math.max(0, (regras.eficienciaOtimo - metricas.eficiencia) / regras.eficienciaOtimo) + 0.5;
+}
 
 /** Identifica o principal desvio do lote (o que mais pesa na qualidade). */
 export function principalDesvio(
@@ -23,17 +46,8 @@ export function principalDesvio(
   regras: RegrasAnaliseAero,
 ): Desvio {
   const candidatos: Array<{ desvio: Desvio; peso: number }> = [
-    {
-      desvio: "DEFEITOS",
-      peso: classificarDefeitos(metricas.taxaDefeitos, regras) === "OTIMO" ? 0 : metricas.taxaDefeitos / regras.taxaDefeitosAtencao,
-    },
-    {
-      desvio: "EFICIENCIA",
-      peso:
-        classificarEficiencia(metricas.eficiencia, regras) === "OTIMO"
-          ? 0
-          : (regras.eficienciaOtimo - metricas.eficiencia) / regras.eficienciaOtimo + 0.5,
-    },
+    { desvio: "DEFEITOS", peso: pesoDefeitos(metricas, regras) },
+    { desvio: "EFICIENCIA", peso: pesoEficiencia(metricas, regras) },
     {
       desvio: "TEMPERATURA",
       peso: Math.max(0, desvioNormalizado(dados.temperatura, regras.temperaturaMin, regras.temperaturaMax) - 0.8),
