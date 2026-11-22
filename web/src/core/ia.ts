@@ -9,8 +9,7 @@ import type { AIProvider, ConfigIA, ModeloIAMeta, RequisicaoIA, SaidaBrutaIA, Ti
 import { calcularMetricas } from "./calculations";
 import { gerarRecomendacao } from "./fallback";
 import { classificar } from "./rules";
-import { type RegrasAnaliseAero } from "./types";
-import { ModoFalhaIA, } from "./types";
+import { ModoFalhaIA, type RegrasAnaliseAero } from "./types";
 import { arredondar, criarPrng, hashTexto, limitar } from "./utils";
 
 export const MODELO_IA_META: ModeloIAMeta = {
@@ -21,6 +20,15 @@ export const MODELO_IA_META: ModeloIAMeta = {
 };
 
 export const CONFIG_IA_PADRAO: ConfigIA = { modoFalha: ModoFalhaIA.NENHUM, timeoutMs: 2000 };
+
+/**
+ * Amplitudes do ruído aplicado às métricas reais para simular a variação do modelo.
+ * "Relativa" = fração do valor base (0.05 = ±5%). "Absoluta" = pontos percentuais.
+ */
+const AMPLITUDE_TAXA_DEFEITOS = 0.05; // relativa
+const AMPLITUDE_EFICIENCIA = 1; // absoluta
+const AMPLITUDE_PRODUTIVIDADE = 0.02; // relativa
+const AMPLITUDE_PREVISAO_FALHAS = 2; // absoluta
 
 /** Erro lançado pela IA nos modos EXCECAO e TIMEOUT. */
 export class ErroIA extends Error {
@@ -56,17 +64,30 @@ export function validarSaidaIA(saida: unknown): string[] {
   return resultado.error.issues.map((i) => `${i.path.join(".") || "saida"}: ${i.message}`);
 }
 
-/** Seed efetiva: combina a seed informada com o conteúdo do lote (não com o id). */
+/**
+ * Seed efetiva: combina a seed informada com o conteúdo do lote (não com o id).
+ * Seeds inválidas (NaN, Infinity) viram 0, para a mesma entrada nunca gerar
+ * resultados diferentes por causa de um valor inválido.
+ */
 export function seedEfetiva(requisicao: Pick<RequisicaoIA, "dados" | "seed">): number {
   const d = requisicao.dados;
+  const seedSegura = Number.isFinite(requisicao.seed) ? requisicao.seed : 0;
   return hashTexto(
-    [requisicao.seed, d.pecaId, d.dataLote, d.quantidade, d.defeituosos, d.horas, d.temperatura, d.pressao].join("|"),
+    [seedSegura, d.pecaId, d.dataLote, d.quantidade, d.defeituosos, d.horas, d.temperatura, d.pressao].join("|"),
   );
 }
 
 /**
- * Simula a inferência. Lança `ErroIA` nos modos EXCECAO e TIMEOUT.
- * Nos demais modos retorna a saída bruta (que pode ser inválida).
+ * Simula a inferência do `modelo_ia.bin`.
+ *
+ * Propriedades garantidas:
+ * - Determinística: mesma requisição (dados, peça, regras, config) e mesma seed
+ *   produzem exatamente a mesma saída.
+ * - Pura: sem relógio, sem `Math.random()`, sem estado global e sem rede.
+ * - O PRNG (mulberry32, em `utils.ts`) é semeado por `seedEfetiva`.
+ *
+ * Lança `ErroIA` nos modos EXCECAO e TIMEOUT. Nos demais modos retorna a saída
+ * bruta, que pode ser inválida (SAIDA_INVALIDA) e deve passar por `validarSaidaIA`.
  */
 export function simularIA(requisicao: RequisicaoIA): SaidaBrutaIA {
   const { dados, peca, regras, config } = requisicao;
@@ -96,14 +117,17 @@ export function simularIA(requisicao: RequisicaoIA): SaidaBrutaIA {
   const base = calcularMetricas(dados, regras);
   const ruido = (amplitude: number): number => (rand() - 0.5) * 2 * amplitude;
 
-  const taxaDefeitos = arredondar(limitar(base.taxaDefeitos * (1 + ruido(0.05)), 0, 100));
-  const eficiencia = arredondar(limitar(base.eficiencia + ruido(1), 0, 100));
+  // ATENÇÃO: a ordem das chamadas a rand() abaixo define a saída de cada seed.
+  // Reordenar estas linhas muda o resultado de TODAS as seeds.
+  // Ordem: 1) taxaDefeitos  2) eficiencia  3) produtividade  4) previsaoFalhas  5) confiança.
+  const taxaDefeitos = arredondar(limitar(base.taxaDefeitos * (1 + ruido(AMPLITUDE_TAXA_DEFEITOS)), 0, 100));
+  const eficiencia = arredondar(limitar(base.eficiencia + ruido(AMPLITUDE_EFICIENCIA), 0, 100));
   const metricas = {
-    produtividade: arredondar(Math.max(0, base.produtividade * (1 + ruido(0.02)))),
+    produtividade: arredondar(Math.max(0, base.produtividade * (1 + ruido(AMPLITUDE_PRODUTIVIDADE)))),
     taxaDefeitos,
     eficiencia,
     conformidade: arredondar(100 - taxaDefeitos),
-    previsaoFalhas: arredondar(limitar(base.previsaoFalhas + ruido(2), 0, 100)),
+    previsaoFalhas: arredondar(limitar(base.previsaoFalhas + ruido(AMPLITUDE_PREVISAO_FALHAS), 0, 100)),
   };
 
   const confiancaSorteada =
