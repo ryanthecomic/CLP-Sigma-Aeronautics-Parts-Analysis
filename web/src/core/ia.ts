@@ -130,5 +130,5 @@ export function fallbackSeriaAcionado(saida: SaidaBrutaIA, regras: RegrasAnalise
 /** `AIProvider` mock padrão: a configuração chega em cada requisição. */
 export const mockAIProvider: AIProvider = {
   meta: MODELO_IA_META,
-  inferir: (requisicao) => simularIA(requisicao),
+  inferir: async (requisicao) => simularIA(requisicao),
 };
