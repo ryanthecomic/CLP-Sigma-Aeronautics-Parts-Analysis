@@ -20,7 +20,7 @@ export function TopBar({ modo = "dev" }: TopBarProps) {
           </span>
           <span>Aerolyze Lab</span>
         </Link>
-        <Badge tom="acento">DEV</Badge>
+        <Badge tom="acento">{modo === "dev" ? "DEV" : "OPERADOR"}</Badge>
       </div>
 
       <div className="flex items-center gap-2">
