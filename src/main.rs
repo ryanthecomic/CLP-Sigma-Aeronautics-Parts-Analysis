@@ -32,7 +32,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         .collect::<Result<Vec<_>, _>>()?;
 
     match arguments.first().map(String::as_str) {
-        None | Some("--help") | Some("-h") | Some("ajuda") => print_help(),
+        None | Some("--help") | Some("-h") | Some("ajuda") => {
+            print_help()?;
+            Ok(())
+        }
         Some("analisar") => analyze_arguments(&arguments[1..]),
         Some(command) => Err(io::Error::new(
             io::ErrorKind::InvalidInput,
