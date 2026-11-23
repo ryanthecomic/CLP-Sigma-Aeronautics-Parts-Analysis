@@ -2,6 +2,14 @@
 
 Estas regras são **obrigatórias** ao criar, editar ou revisar qualquer código em `web/`.
 
+## 0. Diretrizes do Executável Nativo Rust
+- O pacote Rust na raiz gera um único executável, `aerolyze`; compile com `cargo build` e valide a versão de entrega com `cargo build --release`.
+- O Rust não usa coletor de lixo: prefira empréstimos `&T` para leitura compartilhada e `&mut T` apenas quando a mutação exclusiva for necessária. Não contorne o borrow checker nem introduza `unsafe`.
+- Em código de produção, não use `.unwrap()`, `.expect()` ou `panic!`; propague falhas com `Result<T, E>` e represente ausência com `Option<T>`. A fronteira da CLI deve apresentar o erro e retornar código de saída diferente de zero.
+- Preserve as verificações configuradas em `Cargo.toml`: `unsafe_code`, `clippy::unwrap_used`, `clippy::expect_used` e `clippy::panic` são proibidos.
+- Antes do PR, execute `cargo fmt --all -- --check`, `cargo test --all-targets`, `cargo clippy --all-targets -- -D warnings` e `cargo build --release`.
+- A crate Rust é a base nativa do domínio; não presuma que o MVP web em `web/` já foi migrado para Rust.
+
 ## 1. Princípio Central do Domínio
 - **"Validar primeiro, analisar depois."** Dados inválidos devem ser barrados pelas guard clauses no Controlador (`src/core/pipeline.ts`) **antes** de qualquer chamada à IA.
 - Se a IA falhar (`EXCECAO`, `TIMEOUT`), retornar saída inválida (`SAIDA_INVALIDA`) ou confiança abaixo de `regras.confiancaMinimaIA`, o fallback determinístico (`src/core/fallback.ts`) deve assumir automaticamente.
