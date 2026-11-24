@@ -6,7 +6,7 @@
  * Uso típico (via hook `useAnalysis`, nunca direto na UI):
  *
  * ```ts
- * const resultado = runAnalysis(input, { repositorio });
+ * const resultado = await runAnalysis(input, { repositorio });
  * ```
  */
 import type { AnalysisGateway, ConfigIA, EventBus, OpcoesAnalise, Repository } from "./contracts";
@@ -33,10 +33,10 @@ export interface OpcoesRunAnalysis {
 }
 
 /**
- * Executa uma análise completa de forma síncrona e determinística
+ * Executa uma análise completa de forma assíncrona e determinística
  * (exceto ids e timestamps). Regras e flags padrão vêm do repositório.
  */
-export function runAnalysis(input: AnaliseInput, opcoes: OpcoesRunAnalysis): ResultadoAnalise {
+export async function runAnalysis(input: AnaliseInput, opcoes: OpcoesRunAnalysis): Promise<ResultadoAnalise> {
   const snapshot = opcoes.repositorio.snapshot();
   return executarPipeline(input, {
     repositorio: opcoes.repositorio,
