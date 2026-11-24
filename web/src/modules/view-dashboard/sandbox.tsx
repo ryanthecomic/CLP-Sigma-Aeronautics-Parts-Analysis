@@ -4,7 +4,7 @@ import { AnalysisHistoryList, ResultCard } from "../../components/result/ResultC
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { useAnalysis } from "../../hooks/useAnalysis";
-import { useRepositorio } from "../../hooks/useDados";
+import { useRegras, useRepositorio } from "../../hooks/useDados";
 
 const FIXTURES_POR_STATUS: Record<StatusQualidade, ResultadoAnalise> = {
   OTIMO: {
@@ -65,6 +65,7 @@ const FIXTURES_POR_STATUS: Record<StatusQualidade, ResultadoAnalise> = {
 export function ViewDashboardSandbox() {
   const { ultimoResultado } = useAnalysis();
   const { resultados } = useRepositorio();
+  const { regras } = useRegras();
   const [modoPreview, setModoPreview] = useState<StatusQualidade | "REAL">(
     ultimoResultado ? "REAL" : "OTIMO",
   );
@@ -103,7 +104,7 @@ export function ViewDashboardSandbox() {
         </div>
       </Card>
 
-      <ResultCard resultado={resultadoExibido} />
+      <ResultCard resultado={resultadoExibido} regras={regras} />
 
       <Card
         titulo="Histórico curto (últimas 5 análises)"
