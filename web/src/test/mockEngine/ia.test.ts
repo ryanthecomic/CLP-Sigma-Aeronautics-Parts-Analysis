@@ -59,9 +59,9 @@ describe("Membro 4 — IA mock: determinismo", () => {
     }
   });
 
-  it("o provedor mock devolve o mesmo resultado que simularIA", () => {
+  it("o provedor mock devolve o mesmo resultado que simularIA", async () => {
     const req = montar({ modoFalha: "NENHUM" });
-    expect(mockAIProvider.inferir(req)).toEqual(simularIA(req));
+    expect(await mockAIProvider.inferir(req)).toEqual(simularIA(req));
   });
 
   it("seeds diferentes produzem saídas diferentes", () => {

@@ -18,11 +18,11 @@ const ENTRADA: AnaliseInput = {
 };
 
 /** Roda o pipeline completo (validação, IA, confiança, fallback, classificação, persistência). */
-function analisar(
+async function analisar(
   ia: ConfigIA,
   extra: Partial<OpcoesRunAnalysis> = {},
   entrada: AnaliseInput = ENTRADA,
-): ResultadoAnalise {
+): Promise<ResultadoAnalise> {
   const repositorio = criarRepositorioLocal(criarStorageMemoria());
   repositorio.carregar();
   return runAnalysis(entrada, { repositorio, bus: criarEventBus(), ia, seed: 42, ...extra });
@@ -55,8 +55,8 @@ const FALHAS: Array<{ nome: string; config: ConfigIA }> = [
 ];
 
 describe("Membro 4 — IA integrada ao Controlador", () => {
-  it("sem falha, o resultado vem da IA e o fallback é ignorado", () => {
-    const resultado = analisar({ modoFalha: "NENHUM" });
+  it("sem falha, o resultado vem da IA e o fallback é ignorado", async () => {
+    const resultado = await analisar({ modoFalha: "NENHUM" });
     expect(resultado.origem).toBe("IA");
     expect(resultado.recomendacao).toContain("Modelo indica");
     expect(resultado.confianca).toBeGreaterThanOrEqual(REGRAS_PADRAO.confiancaMinimaIA);
@@ -64,47 +64,47 @@ describe("Membro 4 — IA integrada ao Controlador", () => {
     expect(passo(resultado, "fallback")?.status).toBe("IGNORADO");
   });
 
-  it.each(FALHAS)("$nome aciona o fallback determinístico", ({ config }) => {
-    const resultado = analisar(config);
+  it.each(FALHAS)("$nome aciona o fallback determinístico", async ({ config }) => {
+    const resultado = await analisar(config);
     expect(resultado.origem).toBe("FALLBACK");
     expect(passo(resultado, "fallback")?.status).toBe("SUCESSO");
     expect(passo(resultado, "fallback")?.motivo).toBeTruthy();
   });
 
-  it.each(FALHAS)("$nome é reproduzível de ponta a ponta", ({ config }) => {
-    expect(essencia(analisar(config))).toEqual(essencia(analisar(config)));
+  it.each(FALHAS)("$nome é reproduzível de ponta a ponta", async ({ config }) => {
+    expect(essencia(await analisar(config))).toEqual(essencia(await analisar(config)));
   });
 
-  it("EXCECAO registra a falha da IA com o tipo no motivo", () => {
-    const resultado = analisar({ modoFalha: "EXCECAO" });
+  it("EXCECAO registra a falha da IA com o tipo no motivo", async () => {
+    const resultado = await analisar({ modoFalha: "EXCECAO" });
     expect(passo(resultado, "ia")?.status).toBe("ERRO");
     expect(passo(resultado, "ia")?.motivo).toContain("IA falhou (EXCECAO)");
   });
 
-  it("TIMEOUT registra a falha com o limite configurado", () => {
-    const resultado = analisar({ modoFalha: "TIMEOUT", timeoutMs: 1500 });
+  it("TIMEOUT registra a falha com o limite configurado", async () => {
+    const resultado = await analisar({ modoFalha: "TIMEOUT", timeoutMs: 1500 });
     expect(passo(resultado, "ia")?.status).toBe("ERRO");
     expect(passo(resultado, "ia")?.motivo).toContain("IA falhou (TIMEOUT)");
     expect(passo(resultado, "ia")?.motivo).toContain("1500 ms");
   });
 
-  it("BAIXA_CONFIANCA: a IA responde, mas a verificação de confiança barra", () => {
-    const resultado = analisar({ modoFalha: "BAIXA_CONFIANCA" });
+  it("BAIXA_CONFIANCA: a IA responde, mas a verificação de confiança barra", async () => {
+    const resultado = await analisar({ modoFalha: "BAIXA_CONFIANCA" });
     expect(passo(resultado, "ia")?.status).toBe("SUCESSO");
     expect(passo(resultado, "confianca")?.status).toBe("ALERTA");
     expect(passo(resultado, "confianca")?.motivo).toContain("abaixo do mínimo");
   });
 
-  it("BAIXA_CONFIANCA continua acionando o fallback com outro mínimo nas regras", () => {
+  it("BAIXA_CONFIANCA continua acionando o fallback com outro mínimo nas regras", async () => {
     const regras = { ...REGRAS_PADRAO, confiancaMinimaIA: 0.5 };
-    const resultado = analisar({ modoFalha: "BAIXA_CONFIANCA" }, { regras });
+    const resultado = await analisar({ modoFalha: "BAIXA_CONFIANCA" }, { regras });
     expect(resultado.origem).toBe("FALLBACK");
     expect(passo(resultado, "confianca")?.status).toBe("ALERTA");
   });
 
-  it("SAIDA_INVALIDA nunca é aceita como ResultadoAnalise", () => {
+  it("SAIDA_INVALIDA nunca é aceita como ResultadoAnalise", async () => {
     for (const seed of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-      const resultado = analisar({ modoFalha: "SAIDA_INVALIDA" }, { seed });
+      const resultado = await analisar({ modoFalha: "SAIDA_INVALIDA" }, { seed });
       expect(resultado.origem).toBe("FALLBACK");
       expect(passo(resultado, "ia")?.status).toBe("ERRO");
       expect(passo(resultado, "ia")?.motivo).toContain("Saída inválida da IA");
@@ -128,8 +128,8 @@ describe("Membro 4 — IA integrada ao Controlador", () => {
     }
   });
 
-  it("dados inválidos são barrados antes da IA, mesmo com falha configurada", () => {
-    const resultado = analisar({ modoFalha: "EXCECAO" }, {}, { ...ENTRADA, defeituosos: 600 });
+  it("dados inválidos são barrados antes da IA, mesmo com falha configurada", async () => {
+    const resultado = await analisar({ modoFalha: "EXCECAO" }, {}, { ...ENTRADA, defeituosos: 600 });
     expect(resultado.origem).toBe("VALIDACAO");
     expect(passo(resultado, "ia")?.status).toBe("IGNORADO");
   });
