@@ -28,6 +28,12 @@ CLP-Sigma-Aeronautics-Parts-Analysis/
 ├── .agents/                                               # Ponte JSON de descoberta automática para agentes de IA
 │   ├── plugins.json                                       # Carrega o plugin aerolyze-sigma
 │   └── skills.json                                        # Carrega as skills da Equipe Sigma
+├── .github/workflows/rust.yml                             # Build e portão de qualidade Rust no CI
+├── Cargo.toml                                             # Pacote Rust e executável nativo `aerolyze`
+├── Cargo.lock                                              # Dependências Rust travadas (sem dependências externas)
+├── src/                                                    # Domínio Rust e CLI do executável nativo
+│   ├── lib.rs                                              # Tipos, validação e análise determinística de lotes
+│   └── main.rs                                             # CLI `aerolyze`
 ├── agents-sigma/                                          # Customizações de IA da Equipe Sigma
 │   ├── README.md                                          # Guia de uso de Rules, Skills e Subagentes
 │   └── plugins/aerolyze-sigma/
@@ -127,7 +133,39 @@ O script valida automaticamente:
 
 ---
 
-## 5. Mapa dos 7 Módulos da Equipe Sigma
+## 5. Executável Nativo Rust (`aerolyze`)
+
+O pacote Rust na raiz implementa a base nativa de análise determinística de lotes. Ele aplica as regras de memória segura e erros explícitos e gera um único executável chamado `aerolyze`. Esta crate não substitui nem migra o MVP web descrito acima.
+
+### Pré-requisito
+- Rust estável com Cargo.
+
+### Compilar e executar
+
+Na raiz do repositório:
+
+```bash
+# Compila o executável nativo em target/debug/aerolyze
+cargo build
+
+# Executa os testes e as verificações de qualidade
+cargo test --all-targets
+cargo fmt --all -- --check
+cargo clippy --all-targets -- -D warnings
+
+# Compila a versão otimizada em target/release/aerolyze
+cargo build --release
+
+# Exibe as opções da CLI ou analisa um lote
+cargo run -- --help
+cargo run -- analisar 100 2 2 200 6.5
+```
+
+O alvo `aerolyze` usa apenas a biblioteca padrão, propaga erros com `Result` e rejeita entradas inválidas sem `unwrap()`, `expect()` ou `panic!` no código de produção. O workflow `Rust quality` executa formatação, testes, Clippy e build em pull requests.
+
+---
+
+## 6. Mapa dos 7 Módulos da Equipe Sigma
 
 | # | Módulo (`id`) | Camada | Responsável | Pasta do Sandbox | Arquivos de Core sob sua Responsabilidade | Status MVP |
 |---|---|---|---|---|---|---|
@@ -141,7 +179,7 @@ O script valida automaticamente:
 
 ---
 
-## 6. Fluxo de Trabalho com IA e Convenções de Git
+## 7. Fluxo de Trabalho com IA e Convenções de Git
 
 ### Como iniciar uma nova sessão de IA economizando tokens
 Toda a leitura dos PDFs, diagramas e contratos já está consolidada em [`material de apoio/PLANEJAMENTO-E-ESPECIFICACAO-ACADEMICA-Aerolyze.md`](./material%20de%20apoio/PLANEJAMENTO-E-ESPECIFICACAO-ACADEMICA-Aerolyze.md) e referenciada automaticamente em [`agents-sigma/plugins/aerolyze-sigma/rules/AGENTS.md`](./agents-sigma/plugins/aerolyze-sigma/rules/AGENTS.md). Ao pedir uma evolução (ex.: implementar uma História de Usuário da **Onda 2** ou **Onda 3**), basta indicar o número da HU e a skill correspondente:
