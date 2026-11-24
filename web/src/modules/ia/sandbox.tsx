@@ -1,9 +1,10 @@
-import { AlertTriangle, CheckCircle2, Cpu } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Cpu, Repeat } from "lucide-react";
 import { useState } from "react";
-import type { SaidaBrutaIA } from "../../core/contracts";
-import { ehErroIA, fallbackSeriaAcionado, MODELO_IA_META, simularIA, validarSaidaIA } from "../../core/ia";
+import type { RequisicaoIA, SaidaBrutaIA } from "../../core/contracts";
+import { descreverModelo, ehErroIA, MODELO_IA_META, motivoFallbackIA, simularIA, validarSaidaIA } from "../../core/ia";
+import type { ErroIA } from "../../core/ia";
 import { MODOS_FALHA_IA } from "../../core/types";
-import type { ModoFalhaIA } from "../../core/types";
+import type { ModoFalhaIA, RegrasAnaliseAero } from "../../core/types";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -21,6 +22,80 @@ const ROTULO_MODO: Record<ModoFalhaIA, string> = {
   SAIDA_INVALIDA: "Saída inválida (schema corrompido)",
 };
 
+/** Resultado de uma execução do simulador: saída bruta, erro tipado ou erro inesperado. */
+type Execucao =
+  | { tipo: "saida"; saida: SaidaBrutaIA }
+  | { tipo: "erro"; erro: ErroIA }
+  | { tipo: "inesperado"; mensagem: string };
+
+/**
+ * JSON "bruto" fiel: `JSON.stringify` troca NaN e Infinity por `null`, o que esconde
+ * a corrupção da saída inválida. Aqui eles aparecem literalmente (o texto não é JSON válido).
+ */
+function jsonBruto(valor: unknown): string {
+  const texto = JSON.stringify(
+    valor,
+    (_chave, v: unknown) => (typeof v === "number" && !Number.isFinite(v) ? `__${String(v)}__` : v),
+    2,
+  );
+  return texto.replace(/"__(NaN|Infinity|-Infinity)__"/g, "$1");
+}
+
+function serializarExecucao(exec: Execucao): string {
+  switch (exec.tipo) {
+    case "saida":
+      return jsonBruto(exec.saida);
+    case "erro":
+      return jsonBruto({ tipo: exec.erro.tipo, mensagem: exec.erro.message, detalhes: exec.erro.detalhes });
+    case "inesperado":
+      return exec.mensagem;
+  }
+}
+
+/** Roda o simulador uma vez, sem deixar nenhuma exceção escapar. */
+function executar(requisicao: RequisicaoIA): Execucao {
+  try {
+    return { tipo: "saida", saida: simularIA(requisicao) };
+  } catch (e) {
+    if (ehErroIA(e)) return { tipo: "erro", erro: e };
+    return { tipo: "inesperado", mensagem: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** Motivo pelo qual o fallback seria acionado, ou `null` se a saída seria aceita. */
+function motivoFallback(exec: Execucao, regras: RegrasAnaliseAero): string | null {
+  switch (exec.tipo) {
+    case "saida":
+      return motivoFallbackIA(exec.saida, regras);
+    case "erro":
+      return `IA falhou (${exec.erro.tipo}): ${exec.erro.message}`;
+    case "inesperado":
+      return `IA falhou: ${exec.mensagem}`;
+  }
+}
+
+function dadosParaLog(exec: Execucao): unknown {
+  if (exec.tipo === "saida") return exec.saida;
+  if (exec.tipo === "erro") return exec.erro.detalhes;
+  return undefined;
+}
+
+/** Seed válida = inteiro (inclui 0 e negativos). Texto vazio ou decimal é inválido. */
+function lerSeed(texto: string): number | null {
+  const limpo = texto.trim();
+  if (limpo === "") return null;
+  const n = Number(limpo);
+  return Number.isInteger(n) ? n : null;
+}
+
+/** Tempo limite válido = inteiro positivo, em milissegundos. */
+function lerTimeout(texto: string): number | null {
+  const limpo = texto.trim();
+  if (limpo === "") return null;
+  const n = Number(limpo);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
 export function IASandbox() {
   const { pecas, lotes } = useRepositorio();
   const { regras } = useRegras();
@@ -28,9 +103,10 @@ export function IASandbox() {
 
   const [confianca, setConfianca] = useState(0.85);
   const [modoFalha, setModoFalha] = useState<ModoFalhaIA>("NENHUM");
-  const [seed, setSeed] = useState("42");
-  const [saida, setSaida] = useState<SaidaBrutaIA | null>(null);
-  const [erroCapturado, setErroCapturado] = useState<string | null>(null);
+  const [seedTexto, setSeedTexto] = useState("42");
+  const [timeoutTexto, setTimeoutTexto] = useState("2000");
+  const [execucao, setExecucao] = useState<Execucao | null>(null);
+  const [determinismo, setDeterminismo] = useState<boolean | null>(null);
 
   const peca = pecas[0] ?? {
     id: "P-001",
@@ -50,39 +126,52 @@ export function IASandbox() {
     pressao: 6,
   };
 
+  const seed = lerSeed(seedTexto);
+  const timeoutMs = lerTimeout(timeoutTexto);
+  const entradaValida = seed !== null && timeoutMs !== null;
+
+  const montarRequisicao = (seedNum: number, timeout: number): RequisicaoIA => ({
+    dados: lote,
+    peca,
+    regras,
+    seed: seedNum,
+    config: {
+      modoFalha,
+      confianca: modoFalha === "NENHUM" ? confianca : undefined,
+      timeoutMs: timeout,
+    },
+  });
+
   const executarInferencia = () => {
-    setErroCapturado(null);
-    setSaida(null);
-    const seedNum = Number(seed) || 42;
-    try {
-      const res = simularIA({
-        dados: lote,
-        peca,
-        regras,
-        seed: seedNum,
-        config: {
-          modoFalha,
-          confianca: modoFalha === "NENHUM" ? confianca : undefined,
-          timeoutMs: 2000,
-        },
-      });
-      setSaida(res);
-      const acionaFallback = fallbackSeriaAcionado(res, regras);
-      log(
-        acionaFallback ? "WARN" : "INFO",
-        `Inferência simulada (seed ${seedNum}, modo ${modoFalha}): confiança ${res.confianca}.`,
-        res,
-      );
-    } catch (e) {
-      const msg = ehErroIA(e) ? `[${e.tipo}] ${e.message}` : String(e);
-      setErroCapturado(msg);
-      log("ERROR", `Falha simulada na IA: ${msg}`);
-    }
+    if (seed === null || timeoutMs === null) return;
+    const exec = executar(montarRequisicao(seed, timeoutMs));
+    setExecucao(exec);
+    setDeterminismo(null);
+    const motivo = motivoFallback(exec, regras);
+    const nivel = exec.tipo === "saida" ? (motivo ? "WARN" : "INFO") : "ERROR";
+    log(
+      nivel,
+      `Inferência simulada (seed ${seed}, modo ${modoFalha}): ${motivo ?? "saída aceita."}`,
+      dadosParaLog(exec),
+    );
   };
 
-  const problemasSaida = saida ? validarSaidaIA(saida) : [];
-  const acionariaFallback =
-    erroCapturado !== null || (saida !== null && fallbackSeriaAcionado(saida, regras));
+  const executarEComparar = () => {
+    if (seed === null || timeoutMs === null) return;
+    const requisicao = montarRequisicao(seed, timeoutMs);
+    const primeira = executar(requisicao);
+    const segunda = executar(requisicao);
+    const igual = serializarExecucao(primeira) === serializarExecucao(segunda);
+    setExecucao(primeira);
+    setDeterminismo(igual);
+    log(
+      igual ? "INFO" : "ERROR",
+      `Comparação de 2 execuções (seed ${seed}, modo ${modoFalha}): ${igual ? "idênticas" : "DIFERENTES"}.`,
+    );
+  };
+
+  const motivo = execucao !== null ? motivoFallback(execucao, regras) : null;
+  const problemasSaida = execucao !== null && execucao.tipo === "saida" ? validarSaidaIA(execucao.saida) : [];
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -93,11 +182,11 @@ export function IASandbox() {
         <div className="space-y-3">
           <div className="rounded-md border border-borda bg-navy-900/70 p-2.5 text-xs">
             <div className="flex items-center justify-between">
-              <span className="font-mono font-medium text-slate-200">{MODELO_IA_META.nome}</span>
+              <span className="font-mono font-medium text-slate-200">{descreverModelo()}</span>
               <Badge tom="sucesso">{MODELO_IA_META.status}</Badge>
             </div>
             <p className="mt-1 text-slate-400">
-              Versão {MODELO_IA_META.versao} · Precisão nominal {(MODELO_IA_META.precisao * 100).toFixed(0)}%
+              Precisão nominal {(MODELO_IA_META.precisao * 100).toFixed(0)}%
             </p>
           </div>
 
@@ -120,6 +209,11 @@ export function IASandbox() {
             <span className="text-[11px] text-slate-500">
               Mínimo exigido pelas regras: {regras.confiancaMinimaIA.toFixed(2)}
             </span>
+            {modoFalha !== "NENHUM" && (
+              <span className="text-[11px] text-amber-300">
+                Controlada pelo modo de falha selecionado. Para usar o slider, escolha &ldquo;Nenhum&rdquo;.
+              </span>
+            )}
           </div>
 
           <Select
@@ -132,18 +226,56 @@ export function IASandbox() {
           <Input
             rotulo="Seed determinística"
             type="number"
-            value={seed}
-            onChange={(e) => setSeed(e.target.value)}
+            value={seedTexto}
+            onChange={(e) => setSeedTexto(e.target.value)}
+            erro={seed === null ? "Informe um número inteiro (ex.: 0, 42, -7)." : undefined}
+            dica="Mesma seed + mesma entrada = mesma saída."
+          />
+
+          <Input
+            rotulo="Tempo limite simulado"
+            type="number"
+            value={timeoutTexto}
+            onChange={(e) => setTimeoutTexto(e.target.value)}
+            sufixo="ms"
+            erro={timeoutMs === null ? "Informe um inteiro maior que zero." : undefined}
+            dica="Usado no modo Timeout."
           />
 
           <Button
             variante="primario"
             onClick={executarInferencia}
+            disabled={!entradaValida}
             icone={<Cpu className="size-4" />}
             className="w-full"
           >
             Executar inferência
           </Button>
+
+          <Button
+            variante="secundario"
+            onClick={executarEComparar}
+            disabled={!entradaValida}
+            icone={<Repeat className="size-4" />}
+            className="w-full"
+          >
+            Executar 2× e comparar
+          </Button>
+
+          {determinismo !== null && (
+            <p
+              role="status"
+              className={
+                determinismo
+                  ? "rounded-md border border-emerald-500/40 bg-emerald-950/40 p-2 text-xs text-emerald-200"
+                  : "rounded-md border border-red-500/40 bg-red-950/50 p-2 text-xs text-red-200"
+              }
+            >
+              {determinismo
+                ? "Determinístico: as 2 execuções foram idênticas."
+                : "ATENÇÃO: as 2 execuções diferiram."}
+            </p>
+          )}
         </div>
       </Card>
 
@@ -152,8 +284,8 @@ export function IASandbox() {
         descricao="Verifica se o Controlador aceitaria a resposta da IA ou acionaria o fallback determinístico."
         className="lg:col-span-2"
         acoes={
-          saida !== null || erroCapturado !== null ? (
-            acionariaFallback ? (
+          execucao !== null ? (
+            motivo !== null ? (
               <Badge tom="alerta" icone={<AlertTriangle className="size-3.5" />}>
                 Fallback seria ACIONADO
               </Badge>
@@ -165,20 +297,26 @@ export function IASandbox() {
           ) : undefined
         }
       >
-        {erroCapturado && (
-          <div role="alert" className="mb-3 rounded-md border border-red-500/40 bg-red-950/50 p-3 text-xs text-red-200">
-            <p className="font-semibold">Exceção lançada pela IA:</p>
-            <p className="mt-1 font-mono">{erroCapturado}</p>
-            <p className="mt-2 text-amber-200">
-              → O Controlador captura este erro e aciona o fallback determinístico automaticamente.
-            </p>
-          </div>
+        {execucao === null && (
+          <p className="text-xs text-slate-400">
+            Ajuste o modo de falha, a seed ou o slider de confiança e clique em &ldquo;Executar inferência&rdquo;.
+          </p>
         )}
 
-        {saida && (
+        {execucao !== null && (
           <div className="space-y-3">
-            {problemasSaida.length > 0 && (
+            {motivo !== null && (
               <div role="alert" className="rounded-md border border-amber-500/40 bg-amber-950/40 p-3 text-xs text-amber-200">
+                <p className="font-semibold">Motivo do fallback:</p>
+                <p className="mt-1 font-mono">{motivo}</p>
+                <p className="mt-2">
+                  → O Controlador descarta a saída da IA e usa o cálculo determinístico de reserva.
+                </p>
+              </div>
+            )}
+
+            {execucao.tipo === "saida" && problemasSaida.length > 0 && (
+              <div role="alert" className="rounded-md border border-red-500/40 bg-red-950/50 p-3 text-xs text-red-200">
                 <p className="font-semibold">Saída reprovada no schema:</p>
                 <ul className="mt-1 list-disc pl-4">
                   {problemasSaida.map((p) => (
@@ -187,14 +325,19 @@ export function IASandbox() {
                 </ul>
               </div>
             )}
-            <CodeBlock titulo="SaidaBrutaIA" valor={saida} />
-          </div>
-        )}
 
-        {!saida && !erroCapturado && (
-          <p className="text-xs text-slate-400">
-            Ajuste o slider de confiança, o modo de falha ou a seed e clique em &ldquo;Executar inferência&rdquo;.
-          </p>
+            {execucao.tipo === "erro" && (
+              <p className="text-xs text-slate-300">
+                A IA lançou <span className="font-mono text-red-300">{execucao.erro.tipo}</span>. Tipo, mensagem e
+                detalhes (seed, modelo, limites) abaixo.
+              </p>
+            )}
+
+            <CodeBlock
+              titulo={execucao.tipo === "saida" ? "SaidaBrutaIA (JSON bruto)" : "ErroIA (tipo, mensagem e detalhes)"}
+              valor={serializarExecucao(execucao)}
+            />
+          </div>
         )}
       </Card>
     </div>
@@ -202,4 +345,3 @@ export function IASandbox() {
 }
 
 export default IASandbox;
-
