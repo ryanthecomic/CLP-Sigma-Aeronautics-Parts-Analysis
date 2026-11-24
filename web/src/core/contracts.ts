@@ -130,8 +130,8 @@ export type TipoErroIA = "EXCECAO" | "TIMEOUT";
 /** Provedor de IA (biblioteca embarcada, chamada em processo, sem rede). */
 export interface AIProvider {
   readonly meta: ModeloIAMeta;
-  /** Lança `ErroIA` em caso de exceção ou timeout. */
-  inferir(requisicao: RequisicaoIA): SaidaBrutaIA;
+  /** Integrações externas devem ser assíncronas e sempre retornar Promise. */
+  inferir(requisicao: RequisicaoIA): Promise<SaidaBrutaIA>;
 }
 
 /* ------------------------------------------------------------------ */
