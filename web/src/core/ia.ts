@@ -12,12 +12,26 @@ import { classificar } from "./rules";
 import { ModoFalhaIA, type RegrasAnaliseAero } from "./types";
 import { arredondar, criarPrng, hashTexto, limitar } from "./utils";
 
-export const MODELO_IA_META: ModeloIAMeta = {
+const metaModelo: ModeloIAMeta = {
   nome: "modelo_ia.bin",
   versao: "0.1.0-mock",
   precisao: 0.92,
   status: "carregado",
 };
+
+/**
+ * Metadados do modelo embarcado (nome, versão, precisão e status).
+ * Congelado: nenhum código pode alterá-lo em tempo de execução.
+ */
+export const MODELO_IA_META: Readonly<ModeloIAMeta> = Object.freeze(metaModelo);
+
+/**
+ * Identificador legível do modelo no formato "nome@versão" (ex.: "modelo_ia.bin@0.1.0-mock").
+ * É o único lugar que monta esse texto: use esta função em vez de concatenar à mão.
+ */
+export function descreverModelo(meta: Pick<ModeloIAMeta, "nome" | "versao"> = MODELO_IA_META): string {
+  return `${meta.nome}@${meta.versao}`;
+}
 
 export const CONFIG_IA_PADRAO: ConfigIA = { modoFalha: ModoFalhaIA.NENHUM, timeoutMs: 2000 };
 
@@ -30,8 +44,8 @@ const AMPLITUDE_EFICIENCIA = 1; // absoluta
 const AMPLITUDE_PRODUTIVIDADE = 0.02; // relativa
 const AMPLITUDE_PREVISAO_FALHAS = 2; // absoluta
 
-/** Identificador "nome@versão" usado nas saídas e nos erros (a T4.3 vai centralizar isto). */
-const IDENTIFICADOR_MODELO = `${MODELO_IA_META.nome}@${MODELO_IA_META.versao}`;
+/** Identificador "nome@versão" usado nas saídas e nos erros. */
+const IDENTIFICADOR_MODELO = descreverModelo();
 
 /**
  * Saídas corrompidas devolvidas no modo SAIDA_INVALIDA. A seed escolhe qual delas.
