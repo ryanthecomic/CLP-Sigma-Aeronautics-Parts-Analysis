@@ -55,7 +55,7 @@ const CATALOGO_CONTRATOS = [
   {
     nome: "AIProvider",
     dono: "Membro 4 (IA)",
-    assinatura: "{ readonly meta: ModeloIAMeta; inferir(requisicao: RequisicaoIA): Promise<SaidaBrutaIA> }",
+    assinatura: "{ readonly meta: ModeloIAMeta; inferir(requisicao: RequisicaoIA): SaidaBrutaIA }",
   },
   {
     nome: "Repository",

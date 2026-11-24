@@ -10,13 +10,13 @@ import { CENARIOS, compararCenario } from "../../core/scenarios";
 import { FLAGS_PADRAO } from "../../core/seed";
 
 describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
-  it("rejeita dados inválidos antes da IA e mantém o motivo do bloqueio nos steps", async () => {
+  it("rejeita dados inválidos antes da IA e mantém o motivo do bloqueio nos steps", () => {
     const repo = criarRepositorioLocal(criarStorageMemoria());
     repo.carregar();
     const bus = criarEventBus();
     const inferirSpy = vi.fn();
 
-    const resultado = await executarPipeline(
+    const resultado = executarPipeline(
       {
         pecaId: "P-001",
         dataLote: "2026-10-15",
@@ -30,7 +30,7 @@ describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
         repositorio: repo,
         ia: {
           meta: { nome: "modelo_ia.bin", versao: "0.1", precisao: 0.9, status: "carregado" },
-          inferir: async () => inferirSpy(),
+          inferir: inferirSpy,
         },
         engine: {
           calcularMetricas,
@@ -56,11 +56,11 @@ describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
     }
   });
 
-  it("aciona o fallback determinístico quando a IA lança exceção", async () => {
+  it("aciona o fallback determinístico quando a IA lança exceção", () => {
     const repo = criarRepositorioLocal(criarStorageMemoria());
     repo.carregar();
 
-    const resultado = await runAnalysis(
+    const resultado = runAnalysis(
       {
         pecaId: "P-001",
         dataLote: "2026-10-15",
@@ -82,11 +82,11 @@ describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
     expect(resultado.passos.find((step) => step.id === "fallback")?.motivo).toContain("IA falhou");
   });
 
-  it("aciona o fallback determinístico quando a confiança da IA é baixa", async () => {
+  it("aciona o fallback determinístico quando a confiança da IA é baixa", () => {
     const repo = criarRepositorioLocal(criarStorageMemoria());
     repo.carregar();
 
-    const resultado = await runAnalysis(
+    const resultado = runAnalysis(
       {
         pecaId: "P-001",
         dataLote: "2026-10-15",
@@ -108,13 +108,13 @@ describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
     expect(resultado.passos.find((step) => step.id === "fallback")?.status).toBe("SUCESSO");
   });
 
-  it("interrompe antes da IA quando a temperatura está fora da faixa", async () => {
+  it("interrompe antes da IA quando a temperatura está fora da faixa", () => {
     const repo = criarRepositorioLocal(criarStorageMemoria());
     repo.carregar();
     const bus = criarEventBus();
     const inferirSpy = vi.fn();
 
-    const resultado = await executarPipeline(
+    const resultado = executarPipeline(
       {
         pecaId: "P-001",
         dataLote: "2026-10-15",
@@ -126,7 +126,7 @@ describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
       },
       {
         repositorio: repo,
-        ia: { meta: { nome: "modelo_ia.bin", versao: "0.1", precisao: 0.9, status: "carregado" }, inferir: async () => inferirSpy() },
+        ia: { meta: { nome: "modelo_ia.bin", versao: "0.1", precisao: 0.9, status: "carregado" }, inferir: inferirSpy },
         engine: {
           calcularMetricas,
           classificar,
@@ -147,12 +147,12 @@ describe("Membro 2 — Pipeline, guard clauses e 4 cenários oficiais", () => {
     expect(resultado.erros.some((e) => e.codigo === "TEMPERATURA_FORA_DA_FAIXA")).toBe(true);
   });
 
-  it("executa os 4 cenários prontos e todos batem com o esperado", async () => {
+  it("executa os 4 cenários prontos e todos batem com o esperado", () => {
     const repo = criarRepositorioLocal(criarStorageMemoria());
     repo.carregar();
 
     for (const cenario of CENARIOS) {
-      const resultado = await runAnalysis(cenario.input, {
+      const resultado = runAnalysis(cenario.input, {
         repositorio: repo,
         flags: cenario.flags,
         ia: cenario.ia,

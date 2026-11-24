@@ -102,12 +102,12 @@ describe("Membro 1 — contrato do Modelo", () => {
   });
 
   describe("integração com o pipeline", () => {
-    it("interrompe com PECA_NAO_ENCONTRADA quando a peça não existe e não chama a IA", async () => {
+    it("interrompe com PECA_NAO_ENCONTRADA quando a peça não existe e não chama a IA", () => {
       const repo = criarRepositorioLocal(criarStorageMemoria());
       repo.carregar();
       const inferirSpy = vi.fn();
 
-      const resultado = await executarPipeline(
+      const resultado = executarPipeline(
         {
           pecaId: "P-999",
           dataLote: "2026-10-15",
@@ -126,7 +126,7 @@ describe("Membro 1 — contrato do Modelo", () => {
               precisao: 0.9,
               status: "carregado",
             },
-            inferir: async () => inferirSpy(),
+            inferir: inferirSpy,
           },
           engine: {
             calcularMetricas,
