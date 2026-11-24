@@ -66,7 +66,7 @@ export interface DependenciasPipeline {
  * Executa: validar -> IA -> confiança -> fallback -> classificar -> persistir.
  * Emite PipelineStep e LogEvent no bus a cada etapa.
  */
-export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline): ResultadoAnalise {
+export async function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline): Promise<ResultadoAnalise> {
   const { repositorio, ia, engine, bus, regras, flags } = deps;
   const relogio = deps.relogio ?? relogioPadrao;
   const agora = deps.agora ?? (() => new Date());
@@ -112,7 +112,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   ));
 
   inicio = relogio();
-  const peca = input.pecaId ? repositorio.buscarPeca(input.pecaId) : undefined;
+  const peca = input.pecaId ? await repositorio.buscarPeca(input.pecaId) : undefined;
   const validacao = validarEntrada(input, {
     regras,
     peca,
@@ -187,7 +187,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     const requisicao = { dados, peca: peca as PecaAeronautica, regras, config, seed: deps.seed };
 
     try {
-      const saida = ia.inferir(requisicao);
+      const saida = await ia.inferir(requisicao);
       const problemas = validarSaidaIA(saida);
       if (problemas.length) {
         motivoFallback = `Saída inválida da IA: ${problemas.join("; ")}.`;
@@ -244,7 +244,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   let confianca: number;
 
   if (usarFallback || !saidaIA) {
-    const fallback = engine.executarFallback(dados, regras);
+    const fallback = await engine.executarFallback(dados, regras);
     metricas = {
       produtividade: fallback.produtividade,
       taxaDefeitos: fallback.taxaDefeitos,
@@ -270,8 +270,8 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   }
 
   inicio = relogio();
-  const status = engine.classificar(metricas, regras);
-  if (usarFallback) recomendacao = engine.gerarRecomendacao(status, metricas, dados, regras);
+  const status = await engine.classificar(metricas, regras);
+  if (usarFallback) recomendacao = await engine.gerarRecomendacao(status, metricas, dados, regras);
   registrar(passo(PipelineStepId.Classificar, "Classificar resultado", ModuloSistema.MODEL, status === StatusQualidade.CRITICO ? StatusPasso.ALERTA : StatusPasso.SUCESSO, inicio, {
     ...(status === StatusQualidade.CRITICO ? { motivo: "Resultado crítico: alerta de qualidade." } : {}),
     entrada: metricas,
@@ -294,7 +294,7 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
   };
   return persistirEFinalizar(resultado, true);
 
-  function persistirEFinalizar(r: ResultadoAnalise, salvarLote: boolean): ResultadoAnalise {
+  async function persistirEFinalizar(r: ResultadoAnalise, salvarLote: boolean): Promise<ResultadoAnalise> {
     const inicio = relogio();
     const stepOk = passo(PipelineStepId.Persistir, "Persistir resultado", ModuloSistema.REPO, StatusPasso.SUCESSO, inicio, {
       entrada: { resultadoId: r.id, loteId: r.loteId, salvarLote },
@@ -302,16 +302,18 @@ export function executarPipeline(input: AnaliseInput, deps: DependenciasPipeline
     });
     const final: ResultadoAnalise = { ...r, passos: [...passos, stepOk] };
     try {
-      if (salvarLote) repositorio.registrarLote(dados);
-      repositorio.registrarResultado(final);
+      if (salvarLote) await repositorio.registrarLote(dados);
+      await repositorio.registrarResultado(final);
       registrar(stepOk);
       log(NivelLog.INFO, ModuloSistema.REPO, `Resultado ${r.id} persistido.`);
-    } catch (e) {
+    } 
+    catch (e) {
       const motivo = `Falha ao persistir: ${e instanceof Error ? e.message : String(e)}`;
       registrar({ ...stepOk, status: StatusPasso.ERRO, motivo });
       final.passos = [...passos];
       log(NivelLog.ERROR, ModuloSistema.REPO, motivo);
     }
+    
     log(NivelLog.INFO, ModuloSistema.CONTROLLER, `Análise concluída: ${final.status} (origem ${final.origem}).`, {
       status: final.status,
       origem: final.origem,
