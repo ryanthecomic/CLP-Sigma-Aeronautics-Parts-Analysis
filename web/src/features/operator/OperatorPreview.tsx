@@ -28,18 +28,18 @@ export function OperatorPreview() {
   return (
     <div className="flex min-h-screen flex-col bg-navy-900 text-slate-200">
       <TopBar modo="operador" />
-      <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+      <main className="mx-auto w-full max-w-screen-2xl flex-1 px-3 py-5 sm:px-5 lg:px-6">
         <PageHeader
-          titulo="Preview do Operador"
-          descricao="Visão simplificada de ponta a ponta: entrada de lote → validação → IA / fallback → resultado e histórico curto."
-          meta={<Badge tom="info">Fluxo integrado</Badge>}
+          titulo="Qualidade em cada lote"
+          descricao="Transforme os dados da produção em decisões mais seguras. Veja a qualidade do lote, identifique pontos de atenção e receba recomendações para melhorar seus resultados."
+          meta={<Badge tom="info">Análise de produção</Badge>}
         />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <div className="grid min-w-0 grid-cols-1 items-start gap-4 lg:grid-cols-2 lg:gap-5">
           <Card
             titulo="Dados do Lote de Produção"
-            descricao="Preencha os parâmetros e clique em Analisar."
-            className="lg:col-span-2"
+            descricao="Informe os dados da produção e clique em Analisar."
+            className="min-w-0"
           >
             <AnalysisForm
               pecas={pecas}
@@ -50,13 +50,13 @@ export function OperatorPreview() {
             />
           </Card>
 
-          <div className="space-y-4 lg:col-span-3">
+          <div className="min-w-0 space-y-4">
             {resultadoExibido ? (
               <ResultCard resultado={resultadoExibido} />
             ) : (
               <EmptyState
                 titulo="Nenhuma análise executada ainda"
-                descricao="Submeta o formulário ao lado para ver o resultado de conformidade, recomendação e métricas."
+                descricao="Preencha os dados do lote para descobrir como está a qualidade da produção e receber recomendações de melhoria."
               />
             )}
 

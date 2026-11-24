@@ -105,6 +105,25 @@ export function MetricTile({ rotulo, valor, subtitulo }: MetricTileProps) {
   );
 }
 
+/** Usa o instante registrado na análise, apresentado no fuso local do navegador. */
+function AnalysisTimestamp({ criadoEm }: { criadoEm: string }) {
+  const data = typeof criadoEm === "string" && criadoEm.trim() ? new Date(criadoEm) : null;
+  if (!data || !Number.isFinite(data.getTime())) {
+    return <span className="block text-xs text-slate-400">Data e hora indisponíveis</span>;
+  }
+  const dia = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+  }).format(data);
+  const hora = new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).format(data);
+  return (
+    <time dateTime={data.toISOString()} className="block text-xs leading-relaxed text-slate-400">
+      Análise realizada em {dia} às {hora}
+    </time>
+  );
+}
+
 export interface ResultCardProps {
   resultado: ResultadoAnalise;
   titulo?: string;
@@ -124,6 +143,7 @@ export function ResultCard({ resultado, titulo = "Resultado da análise" }: Resu
             <p className="font-mono text-xs text-slate-400">
               Lote {resultado.loteId} · trace {resultado.traceId || "—"}
             </p>
+            <AnalysisTimestamp criadoEm={resultado.criadoEm} />
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -183,11 +203,14 @@ export function AnalysisHistoryList({
                 ativo ? "bg-cyan-500/10" : "hover:bg-grafite-700/60",
               )}
             >
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-medium text-slate-200">{r.loteId}</span>
-                <span className="text-slate-400">
-                  defeitos {r.taxaDefeitos}% · efic. {r.eficiencia}%
-                </span>
+              <div className="min-w-0 space-y-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="font-mono font-medium text-slate-200">{r.loteId}</span>
+                  <span className="text-slate-400">
+                    defeitos {r.taxaDefeitos}% · efic. {r.eficiencia}%
+                  </span>
+                </div>
+                <AnalysisTimestamp criadoEm={r.criadoEm} />
               </div>
               <div className="flex items-center gap-1.5">
                 <Badge tom="neutro">{r.origem}</Badge>

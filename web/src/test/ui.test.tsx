@@ -89,7 +89,7 @@ describe("Testes de componentes e integração de fluxo (React Testing Library)"
     const user = userEvent.setup();
     renderRota("/operador");
 
-    expect(await screen.findByText("Preview do Operador")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Qualidade em cada lote" })).toBeInTheDocument();
 
     const botaoAnalisar = screen.getByRole("button", { name: /^Analisar$/i });
     await user.click(botaoAnalisar);
