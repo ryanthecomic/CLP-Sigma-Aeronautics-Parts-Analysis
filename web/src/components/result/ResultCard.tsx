@@ -8,8 +8,13 @@
  * sempre há ícone e texto.
  */
 import { AlertOctagon, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { ROTULO_STATUS } from "../../core/rules";
-import type { OrigemResultado, ResultadoAnalise, StatusQualidade } from "../../core/types";
+import { REGRAS_PADRAO, ROTULO_STATUS } from "../../core/rules";
+import type {
+  OrigemResultado,
+  RegrasAnaliseAero,
+  ResultadoAnalise,
+  StatusQualidade,
+} from "../../core/types";
 import { Badge } from "../ui/Badge";
 import type { TomBadge } from "../ui/Badge";
 import { cx } from "../ui/cx";
@@ -127,9 +132,15 @@ function AnalysisTimestamp({ criadoEm }: { criadoEm: string }) {
 export interface ResultCardProps {
   resultado: ResultadoAnalise;
   titulo?: string;
+  /** Regras vigentes, usadas nos limiares exibidos. Padrão: `REGRAS_PADRAO`. */
+  regras?: RegrasAnaliseAero;
 }
 
-export function ResultCard({ resultado, titulo = "Resultado da análise" }: ResultCardProps) {
+export function ResultCard({
+  resultado,
+  titulo = "Resultado da análise",
+  regras = REGRAS_PADRAO,
+}: ResultCardProps) {
   const { borda, destaque, icone: Icone } = CONFIG_STATUS[resultado.status];
   const origem = ROTULO_ORIGEM[resultado.origem];
 
@@ -149,7 +160,10 @@ export function ResultCard({ resultado, titulo = "Resultado da análise" }: Resu
         <div className="flex flex-wrap items-center gap-1.5">
           <StatusBadge status={resultado.status} />
           <Badge tom={origem.tom}>{origem.texto}</Badge>
-          <Badge tom="neutro">Confiança: {(resultado.confianca * 100).toFixed(0)}%</Badge>
+          {/* Rejeitado na validação: a IA não foi executada, então não há confiança a exibir. */}
+          {resultado.origem !== "VALIDACAO" && (
+            <Badge tom="neutro">Confiança: {(resultado.confianca * 100).toFixed(0)}%</Badge>
+          )}
         </div>
       </header>
 
@@ -157,8 +171,8 @@ export function ResultCard({ resultado, titulo = "Resultado da análise" }: Resu
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
         <MetricTile rotulo="Produtividade" valor={`${resultado.produtividade} pç/h`} subtitulo="quantidade / horas" />
-        <MetricTile rotulo="Taxa de defeitos" valor={`${resultado.taxaDefeitos}%`} subtitulo="≤ 2% ótimo · ≤ 5% atenção" />
-        <MetricTile rotulo="Eficiência" valor={`${resultado.eficiencia}%`} subtitulo="≥ 85% ótimo · ≥ 70% atenção" />
+        <MetricTile rotulo="Taxa de defeitos" valor={`${resultado.taxaDefeitos}%`} subtitulo={`≤ ${regras.taxaDefeitosOtimo}% ótimo · ≤ ${regras.taxaDefeitosAtencao}% atenção`} />
+        <MetricTile rotulo="Eficiência" valor={`${resultado.eficiencia}%`} subtitulo={`≥ ${regras.eficienciaOtimo}% ótimo · ≥ ${regras.eficienciaAtencao}% atenção`} />
         <MetricTile rotulo="Conformidade" valor={`${resultado.conformidade}%`} subtitulo="100 − taxa de defeitos" />
         <MetricTile rotulo="Previsão de falhas" valor={`${resultado.previsaoFalhas}%`} subtitulo="defeitos + desvio T/P" />
       </div>

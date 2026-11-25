@@ -52,7 +52,7 @@ export function OperatorPreview() {
 
           <div className="min-w-0 space-y-4">
             {resultadoExibido ? (
-              <ResultCard resultado={resultadoExibido} />
+              <ResultCard resultado={resultadoExibido} regras={regras} />
             ) : (
               <EmptyState
                 titulo="Nenhuma análise executada ainda"

@@ -15,6 +15,7 @@
 - **Contratos congelados** ao final da Fase 0; mudanças exigem revisão.
 - **MVP:** Hub + 7 sandboxes + pipeline + logs + flags/cenários + documentação + preview do operador.
 - **Fora do MVP:** IA real, SQL real, PDF/CSV, gráficos avançados, simulação dimensional e backend Rust.
+- **Trilha Rust nativa inicial (fora do MVP Web):** o pacote raiz `aerolyze` fornece uma CLI e análise determinística de lotes com a biblioteca padrão; não representa a migração completa da plataforma Rust originalmente planejada.
 - **Regra de ouro:** um módulo não importa código de outro módulo. O que for compartilhado vai para `src/core/` ou `src/components/`.
 
 ---

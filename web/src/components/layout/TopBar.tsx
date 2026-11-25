@@ -18,7 +18,7 @@ export function TopBar({ modo = "dev" }: TopBarProps) {
         <Link to="/dev" className="flex items-center gap-2 text-sm font-semibold text-slate-100">
           <img src={aerolyzeLogo} alt="Aerolyze" className="h-auto w-36 max-w-full sm:w-40" />
         </Link>
-        {modo === "dev" && <Badge tom="acento">DEV</Badge>}
+        <Badge tom="acento">{modo === "dev" ? "DEV" : "OPERADOR"}</Badge>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
