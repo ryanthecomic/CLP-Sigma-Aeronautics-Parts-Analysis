@@ -243,7 +243,7 @@ UI → hook → core (pipeline/mockEngine) → eventBus → store → UI
 
 **Foco:** formulário, validação e configuração de limites.
 
-- [ ] **T6.1** Criar o formulário controlado com peça, data, quantidade, defeituosos, horas, temperatura e pressão.
+- [x] **T6.1** Criar o formulário controlado com peça, data, quantidade, defeituosos, horas, temperatura e pressão.
 - [ ] **T6.2** Implementar o schema Zod e as mensagens de validação inline.
 - [ ] **T6.3** Implementar o modal "Configurar Limites" com temperatura, pressão e confiança mínima.
 - [ ] **T6.4** Criar componentes reutilizáveis em `src/components/form/`.
@@ -258,6 +258,8 @@ UI → hook → core (pipeline/mockEngine) → eventBus → store → UI
 - O modal de limites atualiza as regras na store.
 - O sandbox exibe validação inline.
 - Nenhum cálculo de domínio fica duplicado na View.
+
+**Registro T6.1:** implementação existente conferida no código; evidências e roteiro no README de `web/src/modules/view-entrada/`. A marcação indica implementação presente, não aceite final da equipe. A execução dos testes e o aceite da Definition of Done devem ser confirmados na revisão do PR antes de concluir o cartão.
 
 **Backlog futuro:** simulação dimensional (comprimento, largura, espessura e tolerância), se o contrato for aprovado. Não bloqueia o MVP.
 
