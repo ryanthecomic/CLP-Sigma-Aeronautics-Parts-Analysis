@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aerolyze — Peças certas, antes do voo · Equipe Sigma</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #1C1B20;
+      --bg-soft: #23222A;
+      --surface: #2A2933;
+      --surface-2: #312F3D;
+      --text: #F5F7FB;
+      --text-soft: #B8BCC8;
+      --line: rgba(255,255,255,0.10);
+
+      --accent: #28C2C4;
+      --accent-2: #B0AFFA;
+      --accent-3: #7BE7E8;
+
+      --success: #6EE7B7;
+      --warning: #F6C177;
+      --danger: #FF7B9C;
+
+      --shadow-soft: 0 10px 30px rgba(0,0,0,0.25);
+      --shadow-glow: 0 0 0 1px rgba(40,194,196,0.16), 0 0 32px rgba(40,194,196,0.12);
+
+      --radius-sm: 12px;
+      --radius-md: 20px;
+      --radius-lg: 24px;
+      --radius-xl: 28px;
+
+      --fs-display: clamp(52px, 7vw, 96px);
+      --fs-h1: clamp(40px, 5vw, 72px);
+      --fs-h2: clamp(26px, 3.3vw, 46px);
+      --fs-h3: clamp(18px, 1.9vw, 26px);
+      --fs-body-lg: clamp(17px, 1.4vw, 22px);
+      --fs-body: clamp(15px, 1.25vw, 18px);
+      --fs-small: 14px;
+      --fs-mono: 12px;
+
+      --container-pad-y: 44px;
+      --container-pad-x: 64px;
+      --content-max: 1280px;
+
+      --anim-duration: 0.7s;
+      --anim-ease: ease;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(176,175,250,0.10), transparent 30%),
+        radial-gradient(circle at 80% 30%, rgba(40,194,196,0.10), transparent 28%),
+        linear-gradient(180deg, #1C1B20 0%, #17161B 100%);
+      color: var(--text);
+      font-family: "Chakra Petch", sans-serif;
+      overflow-x: hidden;
+    }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    .presentation { position: relative; }
+
+    .slide {
+      position: relative;
+      height: 100vh;
+      min-height: 100vh;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: grid;
+      place-items: stretch;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(circle at center, black 45%, transparent 100%);
+      opacity: 0.25;
+      z-index: 0;
+    }
+
+    .slide-inner {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      width: min(100%, calc(var(--content-max) + (var(--container-pad-x) * 2)));
+      margin: 0 auto;
+      padding: var(--container-pad-y) var(--container-pad-x);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 22px;
+    }
+
+    .slide-counter {
+      position: absolute;
+      top: 24px;
+      right: 40px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-mono);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      z-index: 3;
+    }
+
+    .slide-tag {
+      position: absolute;
+      top: 24px;
+      left: 64px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-mono);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      opacity: 0.8;
+      z-index: 3;
+    }
+    .slide-tag b { color: var(--accent); font-weight: 500; }
+
+    .mono {
+      font-family: "JetBrains Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow { font-size: var(--fs-mono); color: var(--accent); margin-bottom: 6px; }
+
+    .subtitle {
+      max-width: 760px;
+      font-size: var(--fs-body-lg);
+      line-height: 1.4;
+      color: var(--text-soft);
+      margin: 0;
+    }
+
+    h1, h2, h3, p, blockquote, ul, ol { margin: 0; }
+
+    h1 { font-size: var(--fs-display); line-height: 0.96; letter-spacing: -0.03em; max-width: 14ch; }
+    h2 { font-size: var(--fs-h2); line-height: 1.06; letter-spacing: -0.025em; max-width: 26ch; text-wrap: balance; }
+    h3 { font-size: var(--fs-h3); line-height: 1.1; letter-spacing: -0.02em; }
+
+    p, li { font-size: var(--fs-body); line-height: 1.42; color: var(--text-soft); }
+
+    .accent-text { color: var(--accent); text-shadow: 0 0 24px rgba(40,194,196,0.18); }
+    .accent-2-text { color: var(--accent-2); }
+    .danger-text { color: var(--danger); }
+    .success-text { color: var(--success); }
+    .warning-text { color: var(--warning); }
+
+    .section-heading { display: flex; flex-direction: column; gap: 8px; max-width: 980px; }
+
+    .hero { display: flex; flex-direction: column; gap: 16px; max-width: 1040px; }
+
+    .hero-badge {
+      align-self: flex-start;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(40,194,196,0.25);
+      background: rgba(40,194,196,0.08);
+      box-shadow: var(--shadow-glow);
+      color: var(--text);
+      font-size: var(--fs-mono);
+      font-family: "JetBrains Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card-grid, .feature-grid, .stats-grid { display: grid; gap: 18px; }
+    .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card, .feature-card, .stat-card, .comparison-col, .faq-item {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .card, .feature-card, .faq-item { padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+    .card--accent { border-color: rgba(40,194,196,0.30); box-shadow: var(--shadow-glow); }
+
+    .card-label, .feature-tag, .stat-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+
+    .comparison-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .comparison-col { padding: 26px; display: flex; flex-direction: column; gap: 16px; }
+    .comparison-col.accent { border-color: rgba(40,194,196,0.3); box-shadow: var(--shadow-glow); }
+    .comparison-col.danger { border-color: rgba(255,123,156,0.28); }
+    .comparison-col.muted { opacity: 0.92; }
+    .comparison-col ul, .steps-list { padding: 0; margin: 0; list-style: none; }
+    .comparison-col li + li { margin-top: 10px; }
+    .comparison-col li { padding-left: 22px; position: relative; }
+    .comparison-col li::before {
+      content: ""; position: absolute; left: 0; top: 0.62em;
+      width: 8px; height: 8px; border-radius: 99px; background: var(--text-soft); opacity: 0.5;
+    }
+    .comparison-col.accent li::before { background: var(--accent); opacity: 1; box-shadow: 0 0 10px rgba(40,194,196,0.5); }
+    .comparison-col.danger li::before { background: var(--danger); opacity: 0.9; }
+
+    .statement {
+      max-width: 20ch;
+      font-size: clamp(34px, 5vw, 70px);
+      line-height: 1.06;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+    .quote-meta { color: var(--text-soft); margin-top: 10px; }
+
+    .stat-block { display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+    .stat-value {
+      font-size: clamp(64px, 11vw, 170px);
+      line-height: 0.9;
+      letter-spacing: -0.05em;
+      color: var(--text);
+      text-shadow: 0 0 28px rgba(40,194,196,0.12);
+    }
+    .stat-value .unit { font-size: 0.45em; letter-spacing: -0.02em; color: var(--accent); }
+
+    .stats-grid .stat-card {
+      padding: 24px 22px;
+      min-height: clamp(180px, 30vh, 250px);
+      display: flex; flex-direction: column; justify-content: flex-end; gap: 8px;
+    }
+    .stats-grid .stat-card .stat-value { font-size: clamp(40px, 5.4vw, 80px); }
+    .stat-card.hot { border-color: rgba(255,123,156,0.35); box-shadow: 0 0 0 1px rgba(255,123,156,0.14), 0 0 36px rgba(255,123,156,0.12); }
+    .stat-card.hot .stat-value { color: var(--danger); }
+    .stat-card.cool { border-color: rgba(40,194,196,0.30); box-shadow: var(--shadow-glow); }
+    .stat-card.cool .stat-value { color: var(--accent); }
+    .stat-card p { font-size: clamp(13px, 1.05vw, 16px); }
+
+    .step {
+      display: grid; grid-template-columns: 72px 1fr; gap: 18px; align-items: start;
+      padding: 14px 0; border-bottom: 1px solid var(--line);
+    }
+    .step-num { color: var(--accent); font-size: clamp(18px, 2vw, 24px); padding-top: 4px; }
+    .step-copy { display: flex; flex-direction: column; gap: 6px; }
+
+    .closing-content, .divider-content { display: flex; flex-direction: column; gap: 14px; max-width: 980px; }
+    .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 50px; padding: 0 22px; border-radius: 999px; border: 1px solid transparent;
+      font-size: 16px; font-weight: 600;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-3)); color: #081012; box-shadow: var(--shadow-glow); }
+    .btn-secondary { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.12); color: var(--text); }
+
+    /* Timeline horizontal */
+    .timeline { display: grid; gap: 18px; position: relative; }
+    .timeline.h { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+    .timeline.h.three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+    .timeline.h::before {
+      content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 1px;
+      background: linear-gradient(90deg, rgba(40,194,196,0.5), rgba(176,175,250,0.4));
+    }
+    .timeline-item { display: flex; flex-direction: column; gap: 14px; position: relative; }
+    .timeline-dot {
+      width: 15px; height: 15px; border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 0 6px rgba(40,194,196,0.10);
+    }
+    .timeline-copy {
+      padding: 16px 16px 18px; border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      display: flex; flex-direction: column; gap: 6px; height: 100%;
+    }
+    .timeline-copy .mono { color: var(--accent); font-size: var(--fs-mono); }
+    .timeline-copy p { font-size: clamp(13px, 1.05vw, 16px); }
+    .timeline-copy h3 { font-size: clamp(17px, 1.6vw, 22px); }
+    .timeline-item.done .timeline-copy { border-color: rgba(110,231,183,0.30); }
+    .timeline-item.done .timeline-copy .mono { color: var(--success); }
+    .timeline-item.now .timeline-copy { border-color: rgba(40,194,196,0.35); box-shadow: var(--shadow-glow); }
+
+    /* Pills */
+    .pill-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .pill {
+      font-family: "JetBrains Mono", monospace; font-size: var(--fs-mono); letter-spacing: 0.06em;
+      padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.03); color: var(--text);
+    }
+    .pill.hl { border-color: rgba(40,194,196,0.4); background: rgba(40,194,196,0.08); color: var(--accent-3); }
+
+    /* Arquitetura */
+    .arch { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 170px); gap: 14px; align-items: stretch; }
+    .arch-box {
+      border: 1px dashed rgba(40,194,196,0.45); border-radius: var(--radius-lg);
+      padding: 38px 18px 18px; position: relative;
+      background: rgba(40,194,196,0.04);
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+    }
+    .arch-box > .arch-title {
+      position: absolute; top: 12px; left: 18px; color: var(--accent);
+      font-size: var(--fs-mono);
+    }
+    .arch-node {
+      padding: 14px 16px; border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.09);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .arch-node h3 { font-size: clamp(16px, 1.5vw, 21px); }
+    .arch-node p { font-size: clamp(12px, 0.95vw, 14px); line-height: 1.3; }
+    .arch-node .mono { font-size: 11px; color: var(--accent-2); }
+    .arch-link { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; color: var(--text-soft); font-size: 11px; text-align: center; }
+    .arch-link::before { content: ""; width: 40px; height: 1px; background: linear-gradient(90deg, rgba(40,194,196,0.6), rgba(176,175,250,0.6)); }
+    .arch-db {
+      border-radius: var(--radius-lg); border: 1px solid rgba(176,175,250,0.35);
+      background: linear-gradient(180deg, rgba(176,175,250,0.10), rgba(176,175,250,0.03));
+      padding: 16px; display: flex; flex-direction: column; justify-content: center; gap: 6px;
+    }
+    .arch-db h3 { font-size: clamp(16px, 1.5vw, 21px); }
+    .arch-db p { font-size: clamp(12px, 0.95vw, 14px); line-height: 1.3; }
+
+    /* Hub */
+    .hub { display: grid; grid-template-columns: 1fr minmax(0, 1.05fr) 1fr; gap: 20px; align-items: center; }
+    .hub-col { display: flex; flex-direction: column; gap: 14px; }
+    .hub-node {
+      padding: 16px 18px; border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.09);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .hub-node .mono { font-size: 11px; color: var(--accent); }
+    .hub-node h3 { font-size: clamp(16px, 1.5vw, 21px); }
+    .hub-node p { font-size: clamp(12px, 1vw, 15px); line-height: 1.3; }
+    .hub-center {
+      aspect-ratio: 1 / 1; max-height: 46vh; margin: 0 auto; width: 100%; max-width: 330px;
+      border-radius: 50%; border: 1px solid rgba(40,194,196,0.4);
+      background: radial-gradient(circle, rgba(40,194,196,0.18), rgba(40,194,196,0.03) 70%);
+      box-shadow: var(--shadow-glow), inset 0 0 40px rgba(40,194,196,0.10);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 20px;
+    }
+    .hub-center .big { font-size: clamp(26px, 3vw, 40px); line-height: 1; font-weight: 700; letter-spacing: -0.02em; }
+    .hub-center .mono { font-size: 11px; color: var(--accent-3); }
+
+    /* Pipeline */
+    .pipe { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
+    .pipe-step {
+      padding: 12px 6px 10px; border-radius: 14px; text-align: center;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      display: flex; flex-direction: column; gap: 4px; align-items: center;
+    }
+    .pipe-step .n { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--accent); }
+    .pipe-step .t { font-size: clamp(11px, 1vw, 15px); color: var(--text); font-weight: 600; line-height: 1.1; }
+    .pipe-step.guard { border-color: rgba(246,193,119,0.35); }
+    .pipe-step.guard .n { color: var(--warning); }
+    .pipe-step.ia { border-color: rgba(176,175,250,0.35); }
+    .pipe-step.ia .n { color: var(--accent-2); }
+    .pipe-legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 11px; }
+    .pipe-legend span { display: inline-flex; align-items: center; gap: 6px; color: var(--text-soft); }
+    .pipe-legend i { width: 10px; height: 10px; border-radius: 99px; display: inline-block; }
+
+    .path { padding: 20px 22px; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.09); background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); display: flex; flex-direction: column; gap: 8px; }
+    .path .mono { font-size: 11px; }
+    .path h3 { font-size: clamp(17px, 1.7vw, 24px); }
+    .path p { font-size: clamp(13px, 1.05vw, 16px); }
+    .path.p-val { border-color: rgba(255,123,156,0.35); }
+    .path.p-val .mono { color: var(--danger); }
+    .path.p-ia { border-color: rgba(110,231,183,0.35); }
+    .path.p-ia .mono { color: var(--success); }
+    .path.p-fb { border-color: rgba(246,193,119,0.35); }
+    .path.p-fb .mono { color: var(--warning); }
+
+    /* Result cards */
+    .rcard {
+      padding: 20px; border-radius: var(--radius-lg); display: flex; flex-direction: column; gap: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.09); box-shadow: var(--shadow-soft);
+    }
+    .rcard.ok { border-color: rgba(110,231,183,0.4); }
+    .rcard.warn { border-color: rgba(246,193,119,0.4); }
+    .rcard.crit { border-color: rgba(255,123,156,0.5); box-shadow: 0 0 0 1px rgba(255,123,156,0.15), 0 0 36px rgba(255,123,156,0.12); }
+    .badge {
+      align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: 15px; letter-spacing: 0.02em;
+    }
+    .badge svg { width: 18px; height: 18px; flex: none; }
+    .badge.ok { background: rgba(110,231,183,0.12); color: var(--success); border: 1px solid rgba(110,231,183,0.35); }
+    .badge.warn { background: rgba(246,193,119,0.12); color: var(--warning); border: 1px solid rgba(246,193,119,0.35); }
+    .badge.crit { background: rgba(255,123,156,0.12); color: var(--danger); border: 1px solid rgba(255,123,156,0.4); }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric { padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.06); }
+    .metric .k { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-soft); }
+    .metric .v { font-size: clamp(18px, 1.8vw, 26px); color: var(--text); font-weight: 600; line-height: 1.1; }
+    .rec { font-size: clamp(12px, 1vw, 15px); line-height: 1.35; color: var(--text-soft); border-top: 1px solid var(--line); padding-top: 10px; }
+    .origin { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.08em; color: var(--accent-3); text-transform: uppercase; }
+
+    .src { font-size: 11px; line-height: 1.5; color: var(--text-soft); opacity: 0.75; font-family: "JetBrains Mono", monospace; letter-spacing: 0.02em; }
+    .src b { color: var(--text); font-weight: 500; }
+
+    .animate {
+      opacity: 0; transform: translateY(18px);
+      transition: opacity var(--anim-duration) var(--anim-ease), transform var(--anim-duration) var(--anim-ease);
+      will-change: opacity, transform;
+    }
+    .animate.in { opacity: 1; transform: translateY(0); }
+    .delay-1 { transition-delay: 80ms; }
+    .delay-2 { transition-delay: 160ms; }
+    .delay-3 { transition-delay: 240ms; }
+    .delay-4 { transition-delay: 320ms; }
+    .delay-5 { transition-delay: 400ms; }
+
+    .dot-nav {
+      position: fixed; top: 50%; right: 16px; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 8px; z-index: 100;
+    }
+    .dot-nav button {
+      width: 10px; height: 10px; border-radius: 999px; border: none; padding: 0;
+      background: rgba(255,255,255,0.22); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
+      cursor: pointer; transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+    .dot-nav button.active { background: var(--accent); box-shadow: 0 0 0 5px rgba(40,194,196,0.12); transform: scale(1.12); }
+    .dot-nav button:hover { transform: scale(1.08); }
+
+    @media (max-height: 760px) {
+      :root { --container-pad-y: 34px; }
+      .slide-inner { gap: 16px; }
+    }
+
+    @media (max-width: 1100px) {
+      :root { --container-pad-y: 40px; --container-pad-x: 32px; }
+      .cols-3, .cols-4, .comparison-grid, .arch, .hub { grid-template-columns: 1fr; }
+      .timeline.h, .timeline.h.three { grid-template-columns: 1fr; }
+      .timeline.h::before { display: none; }
+      .pipe { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .arch-box { grid-template-columns: 1fr; }
+      .slide-tag { left: 32px; }
+    }
+    @media (max-width: 720px) {
+      :root { --container-pad-y: 28px; --container-pad-x: 20px; }
+      .slide-counter { top: 16px; right: 28px; }
+      .slide-tag { left: 20px; top: 16px; }
+      .dot-nav { right: 8px; }
+      .btn { width: 100%; }
+      .cta-row { flex-direction: column; }
+    }
+
+    @media print {
+      .slide { page-break-after: always; }
+      .animate { opacity: 1 !important; transform: none !important; }
+      .dot-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="dot-nav" aria-label="Navegação dos slides"></nav>
+
+  <main class="presentation">
+
+    <!-- 01 · TÍTULO -->
+    <section class="slide title-slide">
+      <div class="slide-inner">
+        <div class="slide-counter">01 / 18</div>
+        <div class="hero">
+          <div class="hero-badge animate delay-1">Pitch · Equipe Sigma · UFAL</div>
+          <div class="eyebrow mono animate delay-2">Aerolyze · Conformidade aeroespacial</div>
+          <h1 class="animate delay-3">Peças certas, <span class="accent-text">antes do voo.</span></h1>
+          <p class="subtitle animate delay-4">Análise de conformidade de peças e lotes com Rust e IA. Validar primeiro, analisar depois.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 · CONTEXTO · ESTATÍSTICA HERO -->
+    <section class="slide stats-slide hero-stat">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>I</b> · Contexto</div>
+        <div class="slide-counter">02 / 18</div>
+        <div class="stat-block">
+          <div class="stat-label animate delay-1">Custo da má qualidade na indústria</div>
+          <div class="stat-value animate delay-2">15–20<span class="unit">% da receita</span></div>
+          <p class="subtitle animate delay-3">É o que muitas fabricantes gastam com refugo, retrabalho e devoluções, segundo a ASQ. E só 31% dizem entender esse impacto financeiro por inteiro.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 · ESCALADA DE CUSTO -->
+    <section class="slide stats-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>I</b> · Contexto</div>
+        <div class="slide-counter">03 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Quanto custa descobrir tarde</div>
+          <h2 class="animate delay-2">Cada fase que o erro <span class="accent-text">sobrevive</span> encarece a correção</h2>
+        </div>
+        <div class="stats-grid cols-4">
+          <div class="stat-card animate delay-1">
+            <div class="stat-label">Requisitos</div>
+            <div class="stat-value">1x</div>
+            <p>Referência: ajuste documental.</p>
+          </div>
+          <div class="stat-card animate delay-2">
+            <div class="stat-label">Produção</div>
+            <div class="stat-value">7–16x</div>
+            <p>Lote segregado, ferramental recalibrado.</p>
+          </div>
+          <div class="stat-card animate delay-3">
+            <div class="stat-label">Teste</div>
+            <div class="stat-value">21–78x</div>
+            <p>Subconjuntos desmontados e retestados.</p>
+          </div>
+          <div class="stat-card hot animate delay-4">
+            <div class="stat-label">Operação</div>
+            <div class="stat-value">29–1.615x</div>
+            <p>Recall, aeronave no solo, incidente grave.</p>
+          </div>
+        </div>
+        <div class="src animate delay-5">Fonte: NASA JSC, Error Cost Escalation Through the Project Life Cycle (INCOSE, 2004).</div>
+      </div>
+    </section>
+
+    <!-- 04 · CASOS REAIS -->
+    <section class="slide grid-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>I</b> · Contexto</div>
+        <div class="slide-counter">04 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Casos reais</div>
+          <h2 class="animate delay-2">Quando a conformidade é <span class="danger-text">presumida</span></h2>
+        </div>
+        <div class="card-grid cols-2">
+          <article class="card animate delay-1">
+            <div class="card-label">Peças falsificadas · 2019–2023</div>
+            <div class="stat-value" style="font-size:clamp(48px,6vw,92px);color:var(--danger)">£39,3 mi</div>
+            <h3>Fraude da AOG Technics</h3>
+            <p>Mais de 60 mil peças de motor, a maioria para o CFM56, com certificados de aeronavegabilidade forjados. CAA, FAA e EASA emitiram alertas.</p>
+          </article>
+          <article class="card animate delay-2">
+            <div class="card-label">Alaska Airlines 1282 · jan/2024</div>
+            <div class="stat-value" style="font-size:clamp(48px,6vw,92px);color:var(--danger)">0 parafusos</div>
+            <h3>Porta reinstalada sem retenção</h3>
+            <p>O NTSB apontou falhas de treinamento, orientação e supervisão na remoção de peças durante a fabricação. Relatório final em jul/2025.</p>
+          </article>
+        </div>
+        <div class="src animate delay-3">Fontes: Aviation Business News (24/02/2026); Flying Magazine (11/07/2025), com base no relatório final do NTSB.</div>
+      </div>
+    </section>
+
+    <!-- 05 · DADO NEGLIGENCIADO -->
+    <section class="slide comparison-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>I</b> · Contexto</div>
+        <div class="slide-counter">05 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">A dor</div>
+          <h2 class="animate delay-2">Milhares de peças por semestre. Um lote ruim vira <span class="accent-text">linha de planilha.</span></h2>
+        </div>
+        <div class="comparison-grid">
+          <div class="comparison-col danger animate delay-1">
+            <h3>Como é hoje</h3>
+            <ul>
+              <li>Lote com falha vira dado esquecido</li>
+              <li>Desvio de temperatura só aparece no teste</li>
+              <li>Equipe gasta dias ajustando a linha</li>
+              <li>Ninguém liga a falha à causa</li>
+            </ul>
+          </div>
+          <div class="comparison-col accent animate delay-2">
+            <h3>O que falta</h3>
+            <ul>
+              <li>Barrar o lote antes de a análise rodar</li>
+              <li>Resposta mesmo com a IA fora do ar</li>
+              <li>Alerta claro, com ação recomendada</li>
+              <li>Rastro auditável de cada decisão</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 · CITAÇÃO / STORYTELLING -->
+    <section class="slide quote-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>II</b> · Proposta</div>
+        <div class="slide-counter">06 / 18</div>
+        <blockquote class="statement animate delay-1">Numa longarina ou num atuador de flap, <span class="accent-text">“quase conforme”</span> não existe.</blockquote>
+        <p class="subtitle animate delay-2">Para quem fabrica peças de aeronaves e veículos, uma peça fora do padrão é um risco para pessoas.</p>
+      </div>
+    </section>
+
+    <!-- 07 · HISTÓRIA DO LOTE -->
+    <section class="slide comparison-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>II</b> · Proposta</div>
+        <div class="slide-counter">07 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Uma história, dois destinos</div>
+          <h2 class="animate delay-2">O mesmo lote, forno a <span class="danger-text">280 °C</span> (limite: 250 °C)</h2>
+        </div>
+        <div class="comparison-grid">
+          <div class="comparison-col danger muted animate delay-1">
+            <h3>Sem validação</h3>
+            <ul>
+              <li>O lote segue para a próxima etapa</li>
+              <li>O desvio aparece no teste ou em operação</li>
+              <li>Correção custa de 21x a 1.615x mais</li>
+              <li>Risco de recall e de incidente</li>
+            </ul>
+          </div>
+          <div class="comparison-col accent animate delay-2">
+            <h3>Com Aerolyze</h3>
+            <ul>
+              <li>A guard clause barra o lote na entrada</li>
+              <li>A IA nem é chamada</li>
+              <li>Status Crítico com alerta de qualidade</li>
+              <li>Peça segregada antes de seguir adiante</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 · SOLUÇÃO · ETAPAS -->
+    <section class="slide steps-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>II</b> · Proposta</div>
+        <div class="slide-counter">08 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Nossa solução</div>
+          <h2 class="animate delay-2"><span class="accent-text">Validar primeiro,</span> analisar depois</h2>
+        </div>
+        <ol class="steps-list">
+          <li class="step animate delay-1">
+            <div class="step-num mono">01</div>
+            <div class="step-copy"><h3>Entrada</h3><p>O operador informa peça, temperatura, pressão e quantidade do lote.</p></div>
+          </li>
+          <li class="step animate delay-2">
+            <div class="step-num mono">02</div>
+            <div class="step-copy"><h3>Validação local</h3><p>Guard clauses barram o que está fora do padrão, antes da IA.</p></div>
+          </li>
+          <li class="step animate delay-3">
+            <div class="step-num mono">03</div>
+            <div class="step-copy"><h3>Análise por IA, com plano B</h3><p>Se a IA falhar ou duvidar (confiança &lt; 0,70), o fallback determinístico assume.</p></div>
+          </li>
+          <li class="step animate delay-4" style="border-bottom:none">
+            <div class="step-num mono">04</div>
+            <div class="step-copy"><h3>Resultado</h3><p>Dashboard com status, alerta de qualidade e recomendação.</p></div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 09 · POR QUE RUST · ESTATÍSTICAS -->
+    <section class="slide stats-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>III</b> · Tecnologia</div>
+        <div class="slide-counter">09 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Por que Rust</div>
+          <h2 class="animate delay-2">A maior fonte de falhas graves é a <span class="accent-text">memória</span></h2>
+        </div>
+        <div class="stats-grid cols-4">
+          <div class="stat-card hot animate delay-1">
+            <div class="stat-label">Microsoft</div>
+            <div class="stat-value">~70%</div>
+            <p>dos CVEs corrigidos são falhas de segurança de memória.</p>
+          </div>
+          <div class="stat-card hot animate delay-2">
+            <div class="stat-label">Chromium</div>
+            <div class="stat-value">~70%</div>
+            <p>dos 912 bugs graves ou críticos desde 2015.</p>
+          </div>
+          <div class="stat-card cool animate delay-3">
+            <div class="stat-label">Android · 2025</div>
+            <div class="stat-value">&lt;20%</div>
+            <p>das vulnerabilidades são de memória, com Rust no código novo.</p>
+          </div>
+          <div class="stat-card cool animate delay-4">
+            <div class="stat-label">Rust vs C/C++</div>
+            <div class="stat-value">1000x</div>
+            <p>menos vulnerabilidades de memória por linha, no Android.</p>
+          </div>
+        </div>
+        <div class="src animate delay-5">Fontes: Microsoft MSRC (18/07/2019); Chromium Project, Memory safety; Google Security Blog, Rust in Android (13/11/2025).</div>
+      </div>
+    </section>
+
+    <!-- 10 · RUST · CONTEXTO DA LINGUAGEM -->
+    <section class="slide timeline-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>III</b> · Tecnologia</div>
+        <div class="slide-counter">10 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Contexto da linguagem</div>
+          <h2 class="animate delay-2">Rust: de projeto pessoal ao <span class="accent-text">kernel do Linux</span></h2>
+          <p class="subtitle animate delay-3">Linguagem de sistemas com a performance de C e C++, sem coletor de lixo.</p>
+        </div>
+        <div class="timeline h">
+          <div class="timeline-item animate delay-1">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2006</div><h3>Nasce</h3><p>Projeto pessoal de Graydon Hoare.</p></div>
+          </div>
+          <div class="timeline-item animate delay-2">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2010</div><h3>Mozilla</h3><p>A Mozilla apresenta a linguagem ao público.</p></div>
+          </div>
+          <div class="timeline-item animate delay-3">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2015</div><h3>Rust 1.0</h3><p>Primeira versão estável, com garantias de compatibilidade.</p></div>
+          </div>
+          <div class="timeline-item animate delay-4">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2021</div><h3>Rust Foundation</h3><p>Governança independente, com apoio de grandes empresas.</p></div>
+          </div>
+          <div class="timeline-item animate delay-5">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2022+</div><h3>Kernel Linux</h3><p>Rust entra no Linux 6.1. No Android, o kernel 6.12 já traz drivers em Rust.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 · RUST NO NOSSO PROJETO -->
+    <section class="slide grid-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>III</b> · Tecnologia</div>
+        <div class="slide-counter">11 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Rust no Aerolyze</div>
+          <h2 class="animate delay-2">O que a linguagem nos entrega</h2>
+        </div>
+        <div class="card-grid cols-2">
+          <article class="card animate delay-1">
+            <div class="card-label">01 · Ownership</div>
+            <h3>Memória verificada na compilação</h3>
+            <p>O borrow checker barra uma classe inteira de erros antes de o código rodar.</p>
+          </article>
+          <article class="card animate delay-2">
+            <div class="card-label">02 · Sem GC</div>
+            <h3>Latência previsível</h3>
+            <p>Sem coletor de lixo. A IA roda em processo, sem rede entre ela e o controlador.</p>
+          </article>
+          <article class="card animate delay-3">
+            <div class="card-label">03 · Result&lt;T, E&gt;</div>
+            <h3>Erros são valores</h3>
+            <p>Sem unwrap nem panic em produção: toda falha vira um caminho tratado.</p>
+          </article>
+          <article class="card card--accent animate delay-4">
+            <div class="card-label">04 · Traits</div>
+            <h3>Contratos entre módulos</h3>
+            <p>IAnalise, IRepositorio e IAnaliseConformidade viram interfaces; tudo compila num único executável.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12 · ARQUITETURA + STACK -->
+    <section class="slide diagram-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>III</b> · Tecnologia</div>
+        <div class="slide-counter">12 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Decisões de projeto</div>
+          <h2 class="animate delay-2">Um executável, um banco de dados</h2>
+        </div>
+        <div class="arch animate delay-3">
+          <div class="arch-box">
+            <div class="arch-title mono">aerolyze · binário Rust</div>
+            <div class="arch-node"><h3>Interface</h3><p>Captura dados e mostra o dashboard</p><span class="mono">View</span></div>
+            <div class="arch-node"><h3>Controlador</h3><p>Valida, orquestra e faz o fallback</p><span class="mono">IAnalise</span></div>
+            <div class="arch-node"><h3>Modelo</h3><p>Peça, lote, regras e resultado</p><span class="mono">Domínio</span></div>
+            <div class="arch-node"><h3>SistemaIA</h3><p>Biblioteca em processo (modelo_ia.bin)</p><span class="mono">IAnaliseConformidade</span></div>
+            <div class="arch-node"><h3>Repositório</h3><p>Única porta para o banco</p><span class="mono">IRepositorio</span></div>
+            <div class="arch-node"><h3>Fallback</h3><p>Cálculos determinísticos de reserva</p><span class="mono">Cálculos</span></div>
+          </div>
+          <div class="arch-link mono">TCP/IP<br/>driver SQL</div>
+          <div class="arch-db"><span class="mono" style="font-size:11px;color:var(--accent-2)">Banco externo</span><h3>SGBD relacional</h3><p>Peças, lotes e resultados</p></div>
+        </div>
+        <div class="animate delay-4">
+          <p style="font-size:14px;margin-bottom:10px">Protótipo que vamos demonstrar: o <b style="color:var(--text)">Aerolyze Lab</b>, que espelha esses contratos na web.</p>
+          <div class="pill-row">
+            <span class="pill hl">React 19</span>
+            <span class="pill hl">TypeScript estrito</span>
+            <span class="pill">Vite</span>
+            <span class="pill">Tailwind CSS</span>
+            <span class="pill">Zustand</span>
+            <span class="pill">Zod</span>
+            <span class="pill">Vitest</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 · DEMO · HUB -->
+    <section class="slide hub-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>IV</b> · Demonstração</div>
+        <div class="slide-counter">13 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">O produto</div>
+          <h2 class="animate delay-2"><span class="accent-text">Aerolyze Lab:</span> dois modos, sete módulos</h2>
+        </div>
+        <div class="hub animate delay-3">
+          <div class="hub-col">
+            <div class="hub-node"><span class="mono">/dev</span><h3>Hub dos 7 módulos</h3><p>Um sandbox isolado por integrante da equipe.</p></div>
+            <div class="hub-node"><span class="mono">/dev/pipeline</span><h3>Inspetor de pipeline</h3><p>Cada passo com status, tempo e motivo.</p></div>
+            <div class="hub-node"><span class="mono">/dev/logs</span><h3>Logs por traceId</h3><p>Filtros por nível e por camada.</p></div>
+          </div>
+          <div class="hub-center">
+            <span class="mono">protótipo web</span>
+            <div class="big">AEROLYZE<br/>LAB</div>
+            <span class="mono">React · TypeScript</span>
+          </div>
+          <div class="hub-col">
+            <div class="hub-node"><span class="mono">/operador</span><h3>Preview do operador</h3><p>Formulário, resultado, alerta e histórico.</p></div>
+            <div class="hub-node"><span class="mono">/dev/flags</span><h3>Flags e 4 cenários</h3><p>Esperado versus obtido, com um clique.</p></div>
+            <div class="hub-node"><span class="mono">/dev/estado</span><h3>Estado e config.toml</h3><p>Regras ativas prontas para o binário Rust.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14 · DEMO · PIPELINE -->
+    <section class="slide diagram-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>IV</b> · Demonstração</div>
+        <div class="slide-counter">14 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Pipeline de análise</div>
+          <h2 class="animate delay-2">Três caminhos possíveis, <span class="accent-text">um rastro</span></h2>
+        </div>
+        <div class="animate delay-3" style="display:flex;flex-direction:column;gap:12px">
+          <div class="pipe">
+            <div class="pipe-step"><span class="n">01</span><span class="t">Entrada</span></div>
+            <div class="pipe-step guard"><span class="n">02</span><span class="t">Campos</span></div>
+            <div class="pipe-step guard"><span class="n">03</span><span class="t">Peça</span></div>
+            <div class="pipe-step guard"><span class="n">04</span><span class="t">Lote</span></div>
+            <div class="pipe-step ia"><span class="n">05</span><span class="t">IA</span></div>
+            <div class="pipe-step ia"><span class="n">06</span><span class="t">Confiança</span></div>
+            <div class="pipe-step"><span class="n">07</span><span class="t">Fallback</span></div>
+            <div class="pipe-step"><span class="n">08</span><span class="t">Classificar</span></div>
+            <div class="pipe-step"><span class="n">09</span><span class="t">Persistir</span></div>
+          </div>
+          <div class="pipe-legend mono">
+            <span><i style="background:var(--warning)"></i>Guard clauses</span>
+            <span><i style="background:var(--accent-2)"></i>Inteligência artificial</span>
+            <span><i style="background:var(--text-soft)"></i>Cálculo e persistência</span>
+          </div>
+        </div>
+        <div class="card-grid cols-3">
+          <article class="path p-val animate delay-1">
+            <span class="mono">Origem: VALIDACAO</span>
+            <h3>Guard clause reprovou</h3>
+            <p>Passos 5 a 8 ficam IGNORADOS. A IA não é chamada e o lote sai Crítico.</p>
+          </article>
+          <article class="path p-ia animate delay-2">
+            <span class="mono">Origem: IA</span>
+            <h3>Confiança suficiente</h3>
+            <p>Confiança a partir de 0,70: o fallback é ignorado e o status é classificado.</p>
+          </article>
+          <article class="path p-fb animate delay-3">
+            <span class="mono">Origem: FALLBACK</span>
+            <h3>IA falhou ou duvidou</h3>
+            <p>Exceção, timeout, saída inválida ou confiança baixa. O cálculo determinístico assume.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15 · DEMO · RESULTADOS -->
+    <section class="slide screenshot-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>IV</b> · Demonstração</div>
+        <div class="slide-counter">15 / 18</div>
+        <div class="section-heading compact">
+          <div class="eyebrow mono animate delay-1">Preview do operador</div>
+          <h2 class="animate delay-2">Três estados, nunca só <span class="accent-text">cor</span></h2>
+        </div>
+        <div class="card-grid cols-3">
+          <article class="rcard ok animate delay-1">
+            <span class="badge ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Ótimo</span>
+            <div class="metrics">
+              <div class="metric"><div class="k">Produtividade</div><div class="v">50 pç/h</div></div>
+              <div class="metric"><div class="k">Defeitos</div><div class="v">1%</div></div>
+              <div class="metric"><div class="k">Eficiência</div><div class="v">100%</div></div>
+              <div class="metric"><div class="k">Prev. falhas</div><div class="v">2%</div></div>
+            </div>
+            <div class="rec">Manter o processo e monitorar a rotina.</div>
+            <div class="origin">Origem: IA</div>
+          </article>
+          <article class="rcard warn animate delay-2">
+            <span class="badge warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v4M12 17.5v.01"/></svg>Atenção</span>
+            <div class="metrics">
+              <div class="metric"><div class="k">Produtividade</div><div class="v">45 pç/h</div></div>
+              <div class="metric"><div class="k">Defeitos</div><div class="v">3,6%</div></div>
+              <div class="metric"><div class="k">Eficiência</div><div class="v">90%</div></div>
+              <div class="metric"><div class="k">Prev. falhas</div><div class="v">7%</div></div>
+            </div>
+            <div class="rec">Investigar a causa dos defeitos e recalibrar.</div>
+            <div class="origin">Origem: Fallback</div>
+          </article>
+          <article class="rcard crit animate delay-3">
+            <span class="badge crit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8l6 6v8l-6 6H8l-6-6V8l6-6z"/><path d="M12 8v5M12 16.5v.01"/></svg>Crítico</span>
+            <div class="metrics">
+              <div class="metric"><div class="k">Produtividade</div><div class="v">30 pç/h</div></div>
+              <div class="metric"><div class="k">Defeitos</div><div class="v">7%</div></div>
+              <div class="metric"><div class="k">Eficiência</div><div class="v">60%</div></div>
+              <div class="metric"><div class="k">Prev. falhas</div><div class="v">27%</div></div>
+            </div>
+            <div class="rec">Alerta de qualidade: segregar o lote e auditar.</div>
+            <div class="origin">Origem: IA</div>
+          </article>
+        </div>
+        <div class="src animate delay-4">Valores ilustrativos do sandbox. O status é o pior entre taxa de defeitos e eficiência.</div>
+      </div>
+    </section>
+
+    <!-- 16 · DEMO · ROTEIRO -->
+    <section class="slide steps-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>IV</b> · Demonstração</div>
+        <div class="slide-counter">16 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Ao vivo no navegador</div>
+          <h2 class="animate delay-2">Os quatro cenários oficiais</h2>
+        </div>
+        <ol class="steps-list">
+          <li class="step animate delay-1">
+            <div class="step-num mono">A</div>
+            <div class="step-copy"><h3>Lote conforme</h3><p>Passa pelas guard clauses e a IA responde com confiança suficiente.</p></div>
+          </li>
+          <li class="step animate delay-2">
+            <div class="step-num mono">B</div>
+            <div class="step-copy"><h3>Temperatura a 280 °C</h3><p>Barrado na validação. A IA não é chamada e o alerta crítico aparece.</p></div>
+          </li>
+          <li class="step animate delay-3">
+            <div class="step-num mono">C</div>
+            <div class="step-copy"><h3>Baixa confiança da IA</h3><p>A IA responde, mas abaixo de 0,70. O fallback assume.</p></div>
+          </li>
+          <li class="step animate delay-4" style="border-bottom:none">
+            <div class="step-num mono">D</div>
+            <div class="step-copy"><h3>Falha total da IA</h3><p>Exceção ou timeout. O fallback assume e a análise não para.</p></div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 17 · ROADMAP -->
+    <section class="slide timeline-slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>V</b> · Próximos passos</div>
+        <div class="slide-counter">17 / 18</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Roadmap</div>
+          <h2 class="animate delay-2">Do protótipo ao <span class="accent-text">binário Rust</span></h2>
+        </div>
+        <div class="timeline h three">
+          <div class="timeline-item done animate delay-1">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">Onda 1 · concluída</div><h3>MVP Aerolyze Lab</h3><p>7 sandboxes, pipeline, fallback, logs, cenários e preview do operador.</p></div>
+          </div>
+          <div class="timeline-item now animate delay-2">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">Onda 2 · próximo</div><h3>Evolução dos módulos</h3><p>Simulador dimensional, gráficos, exportação CSV e PDF, otimização de parâmetros.</p></div>
+          </div>
+          <div class="timeline-item animate delay-3">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">Onda 3 · alvo</div><h3>Backend nativo</h3><p>Núcleo em Rust, SQL com sqlx, modelo_ia.bin e ponte com a interface React.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18 · ENCERRAMENTO -->
+    <section class="slide closing-slide">
+      <div class="slide-inner">
+        <div class="slide-counter">18 / 18</div>
+        <div class="closing-content">
+          <div class="eyebrow mono animate delay-1">Em resumo</div>
+          <h2 class="animate delay-2" style="max-width:20ch">Conformidade <span class="accent-text">verificada,</span> não presumida.</h2>
+          <p class="subtitle animate delay-3">Validação local, análise por IA e modo reserva, em um único executável Rust.</p>
+          <div class="cta-row animate delay-4">
+            <span class="btn btn-primary">Dúvidas e comentários</span>
+            <span class="btn btn-secondary">Equipe Sigma · UFAL · CLP</span>
+          </div>
+        </div>
+        <div class="src animate delay-5">
+          <b>Fontes:</b> NASA JSC / INCOSE (2004) · ASQ, Cost of Quality · Aviation Business News (24/02/2026) · Flying Magazine (11/07/2025) · Microsoft MSRC (2019) · Chromium Project, Memory safety · Google Security Blog, Rust in Android (13/11/2025)
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const dotsContainer = document.querySelector('.dot-nav');
+
+    function scrollToSlide(index) {
+      const clamped = Math.max(0, Math.min(index, slides.length - 1));
+      slides[clamped].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function buildDots() {
+      slides.forEach((slide, index) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('aria-label', `Ir para o slide ${index + 1}`);
+        btn.addEventListener('click', () => scrollToSlide(index));
+        dotsContainer.appendChild(btn);
+      });
+    }
+
+    function setActiveDot(index) {
+      dotsContainer.querySelectorAll('button').forEach((dot, i) => dot.classList.toggle('active', i === index));
+    }
+
+    const slideObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) setActiveDot(slides.indexOf(entry.target));
+      });
+    }, { threshold: 0.6 });
+
+    const animationObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          animationObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    function initObservers() {
+      slides.forEach(slide => slideObserver.observe(slide));
+      document.querySelectorAll('.animate').forEach(el => animationObserver.observe(el));
+    }
+
+    function getCurrentSlideIndex() {
+      let closestIndex = 0, closestDistance = Infinity;
+      slides.forEach((slide, index) => {
+        const d = Math.abs(slide.getBoundingClientRect().top);
+        if (d < closestDistance) { closestDistance = d; closestIndex = index; }
+      });
+      return closestIndex;
+    }
+
+    document.addEventListener('keydown', (event) => {
+      const i = getCurrentSlideIndex();
+      if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); scrollToSlide(i + 1); }
+      if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); scrollToSlide(i - 1); }
+      if (event.key === 'Home') { event.preventDefault(); scrollToSlide(0); }
+      if (event.key === 'End') { event.preventDefault(); scrollToSlide(slides.length - 1); }
+    });
+
+    buildDots();
+    initObservers();
+    setActiveDot(0);
+  </script>
+</body>
+</html>
