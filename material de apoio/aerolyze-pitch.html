@@ -417,6 +417,36 @@
     .src { font-size: 11px; line-height: 1.5; color: var(--text-soft); opacity: 0.75; font-family: "JetBrains Mono", monospace; letter-spacing: 0.02em; }
     .src b { color: var(--text); font-weight: 500; }
 
+
+    /* Logo */
+    .logo-hero { width: clamp(240px, 32vw, 500px); height: auto; aspect-ratio: 1610 / 426; display: block; margin-bottom: 6px; }
+    .slide-footer {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 54px; z-index: 3;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px 0 64px; border-top: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(23,22,27,0), rgba(23,22,27,0.55));
+    }
+    .slide-footer .foot-note { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-soft); opacity: 0.7; }
+    .title-slide, .title-slide .slide-inner { height: auto; }
+    .title-slide .slide-inner { min-height: 100vh; }
+    .title-slide .hero { gap: clamp(8px, 1.8vh, 16px); }
+    .team-members {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      justify-content: start;
+      gap: 4px 28px;
+      margin-top: 8px;
+      padding: 0;
+      list-style: none;
+    }
+    @media (max-width: 540px) {
+      .team-members { grid-template-columns: 1fr; }
+    }
+    .logo-slide { place-items: center; }
+    .logo-final { display: block; width: min(76vw, 860px); height: auto; aspect-ratio: 1610 / 426; }
+    .logo-foot { height: 30px; width: auto; aspect-ratio: 1610 / 426; display: block; }
+    @media (max-width: 720px) { .slide-footer { padding: 0 20px; } }
+
     .animate {
       opacity: 0; transform: translateY(18px);
       transition: opacity var(--anim-duration) var(--anim-ease), transform var(--anim-duration) var(--anim-ease);
@@ -472,6 +502,115 @@
   </style>
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<symbol id="aerolyze-logo" viewBox="245 287 1610 426">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#Gradiente_sem_nome_79);
+      }
+
+      .cls-2 {
+        fill: url(#Gradiente_sem_nome_35);
+      }
+
+      .cls-3 {
+        fill: url(#Gradiente_sem_nome_179);
+      }
+
+      .cls-4 {
+        fill: none;
+        stroke: url(#Gradiente_sem_nome_18);
+        stroke-miterlimit: 10;
+        stroke-width: 5px;
+      }
+
+      .cls-5 {
+        fill: #fff;
+      }
+
+      .cls-6 {
+        fill: url(#Gradiente_sem_nome_179-3);
+      }
+
+      .cls-7 {
+        fill: url(#Gradiente_sem_nome_179-2);
+      }
+
+      .cls-8 {
+        fill: url(#Gradiente_sem_nome_79-5);
+      }
+
+      .cls-9 {
+        fill: url(#Gradiente_sem_nome_79-4);
+      }
+
+      .cls-10 {
+        fill: url(#Gradiente_sem_nome_79-2);
+      }
+
+      .cls-11 {
+        fill: url(#Gradiente_sem_nome_79-3);
+      }
+    </style>
+    <linearGradient id="Gradiente_sem_nome_79" data-name="Gradiente sem nome 79" x1="321.56" y1="443.28" x2="535.81" y2="354.58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0a6ad8"/>
+      <stop offset="1" stop-color="#0deec2"/>
+    </linearGradient>
+    <linearGradient id="Gradiente_sem_nome_179" data-name="Gradiente sem nome 179" x1="377.48" y1="358.89" x2="720.61" y2="451.19" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0a6ad8"/>
+      <stop offset="1" stop-color="#06f4f6"/>
+    </linearGradient>
+    <linearGradient id="Gradiente_sem_nome_79-2" data-name="Gradiente sem nome 79" x1="512.6" y1="569.75" x2="589.89" y2="515.45" xlink:href="#Gradiente_sem_nome_79"/>
+    <linearGradient id="Gradiente_sem_nome_79-3" data-name="Gradiente sem nome 79" x1="527.65" y1="529.38" x2="397.1" y2="675.59" xlink:href="#Gradiente_sem_nome_79"/>
+    <linearGradient id="Gradiente_sem_nome_79-4" data-name="Gradiente sem nome 79" x1="250.98" y1="504.52" x2="723.6" y2="504.52" xlink:href="#Gradiente_sem_nome_79"/>
+    <linearGradient id="Gradiente_sem_nome_179-2" data-name="Gradiente sem nome 179" x1="463.13" y1="616.26" x2="363.57" y2="497.9" xlink:href="#Gradiente_sem_nome_179"/>
+    <linearGradient id="Gradiente_sem_nome_79-5" data-name="Gradiente sem nome 79" x1="250.98" y1="617.78" x2="723.6" y2="617.78" xlink:href="#Gradiente_sem_nome_79"/>
+    <linearGradient id="Gradiente_sem_nome_179-3" data-name="Gradiente sem nome 179" x1="487.45" y1="539.16" x2="607.55" y2="667.62" xlink:href="#Gradiente_sem_nome_179"/>
+    <linearGradient id="Gradiente_sem_nome_18" data-name="Gradiente sem nome 18" x1="820.19" y1="597.71" x2="1599.62" y2="597.71" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0892dd"/>
+      <stop offset="1" stop-color="#06f4f6"/>
+    </linearGradient>
+    <linearGradient id="Gradiente_sem_nome_35" data-name="Gradiente sem nome 35" x1="762.08" y1="597.71" x2="824.28" y2="597.71" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#06f4f6"/>
+      <stop offset="1" stop-color="#0892dd"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <g>
+      <path class="cls-1" d="M519.24,303.36c4.86,0,9.63.37,14.3,1.04-1.93-1.02-3.89-2-5.89-2.9-12.73-5.69-26.31-8.58-40.36-8.58s-27.63,2.89-40.35,8.58c-20.49,9.15-37.46,25.2-47.79,45.24l-1.94,4-.14.32-88.08,181.8,42.05-11.85,75.49-155.81c.66-1.5,1.37-2.96,2.11-4.35.63-1.18,1.29-2.33,1.99-3.47,16.58-32.08,50.03-54.02,88.63-54.02Z"/>
+      <path class="cls-3" d="M615.45,429.37l-37.89-78.2-.25-.55-1.91-3.94c-9.3-18.03-24.02-32.84-41.86-42.29-4.67-.67-9.44-1.04-14.3-1.04-38.6,0-72.05,21.94-88.63,54.02,9.28-15.21,24.11-25.89,41.09-29.98,5.04-1.21,10.26-1.85,15.59-1.85s10.55.64,15.59,1.85c18.25,4.39,34.02,16.38,43.07,33.44.74,1.39,1.45,2.86,2.11,4.36l48.73,100.59,26.75,55.22,42.05,11.85-50.14-103.49Z"/>
+    </g>
+    <path class="cls-10" d="M650.52,575.98l8.48,18.21,12.46,25.71c18.81,11.79,33.32,20.88,52.14,32.67l-42.49-87.69-176.26-49.69v-88.11c0-23.56-5.45-46.8-15.92-67.91l-1.23-2.47c-.09-.17-.25-.26-.42-.26v172.01l163.24,47.52Z"/>
+    <path class="cls-11" d="M487.29,676.59v-148.12l-163.91,48.04-7.81,17.69,154.15-43.46v112.02l-33.48,22.24c-2.87,1.9-4.59,5.12-4.59,8.56v13.53l55.63-15.68,46.25,13.04v-10.62l-46.25-17.23Z"/>
+    <path class="cls-9" d="M487.29,528.46v-172.01c-.17,0-.33.09-.42.26l-1.23,2.47c-10.47,21.11-15.92,44.35-15.92,67.91v88.11l-176.26,49.69-42.49,87.69c18.81-11.79,33.32-20.88,52.14-32.67l12.46-25.71,7.81-17.69,163.91-48.04Z"/>
+    <path class="cls-7" d="M487.29,528.46v-172.01c-.17,0-.33.09-.42.26l-1.23,2.47c-10.47,21.11-15.92,44.35-15.92,67.91v88.11l-176.26,49.69-42.49,87.69c18.81-11.79,33.32-20.88,52.14-32.67l12.46-25.71,7.81-17.69,163.91-48.04Z"/>
+    <path class="cls-8" d="M542.92,693.56c0-3.44-1.72-6.66-4.59-8.56l-33.48-22.24v-112.02l154.15,43.46-8.48-18.21-163.24-47.52v148.12l46.25,17.23v10.62l9.38,2.64v-13.53Z"/>
+    <path class="cls-6" d="M542.92,693.56c0-3.44-1.72-6.66-4.59-8.56l-33.48-22.24v-112.02l154.15,43.46-8.48-18.21-163.24-47.52v148.12l46.25,17.23,9.38,13.27v-13.53Z"/>
+  </g>
+  <g>
+    <g>
+      <path class="cls-5" d="M876.45,497.5h-67.78l-11.91,23.47h-34.68l62.7-115.24h39.93l62.7,115.24h-39.06l-11.91-23.47ZM866.46,477.88l-23.99-46.94h-.18l-23.82,46.94h47.99Z"/>
+      <path class="cls-5" d="M940.9,405.73h108.94v24.87h-75.31v22.59h57.8v19.62h-57.8v23.29h77.06v24.87h-110.69v-115.24Z"/>
+      <path class="cls-5" d="M1067.7,405.73h72.51c42.73,0,56.04,13.49,56.04,34.15,0,11.56-4.9,22.77-20.84,27.5v.35c18.21,4.2,20.14,16.99,20.14,29.07v24.17h-33.63v-24.17c0-11.91-4.55-17.34-18.92-17.34h-41.68v41.51h-33.63v-115.24ZM1141.79,459.85c16.64,0,22.59-6.13,22.59-15.06,0-8.23-6.13-14.19-25.57-14.19h-37.48v29.25h40.46Z"/>
+      <path class="cls-5" d="M1212.02,462.82c0-31.88,23.64-59.2,75.66-59.2s75.66,27.32,75.66,59.2-21.89,60.25-75.66,60.25-75.66-25.75-75.66-60.25ZM1327.96,463c0-18.74-12.96-34.5-40.28-34.5s-40.28,15.76-40.28,34.5c0,20.67,12.79,35.2,40.28,35.2s40.28-15.41,40.28-35.2Z"/>
+      <path class="cls-5" d="M1382.61,405.73h16.46v100.88h80.56v14.36h-97.03v-115.24Z"/>
+      <path class="cls-5" d="M1508.71,473.33l-67.78-67.6h23.29l53.42,53.77h.35l53.07-53.77h22.07l-67.96,67.6v47.64h-16.46v-47.64Z"/>
+      <path class="cls-5" d="M1602.58,509.59l94.58-89.32v-.17h-93.35v-14.36h115.59v12.26l-93.53,88.45v.18h92.3v14.36h-115.59v-11.38Z"/>
+      <path class="cls-5" d="M1740.95,405.73h105.43v14.36h-88.97v36.43h71.46v12.96h-71.46v37.13h90.72v14.36h-107.19v-115.24Z"/>
+    </g>
+    <g>
+      <path class="cls-5" d="M1629.73,571.39h7.52v46.08h36.8v6.56h-44.32v-52.64Z"/>
+      <path class="cls-5" d="M1751.26,611.55h-40.32l-7.52,12.48h-8.24l32-52.64h8.48l32,52.64h-8.88l-7.52-12.48ZM1747.73,605.63l-16.56-27.52h-.16l-16.56,27.52h33.28Z"/>
+      <path class="cls-5" d="M1792.13,571.39h32.96c13.76,0,20.24,5.28,20.24,13.6,0,5.76-3.52,10.16-8.96,11.44v.08c7.2,1.04,11.76,5.68,11.76,12,0,9.44-6.4,15.52-19.44,15.52h-36.56v-52.64ZM1827.49,594.03c6.8,0,11.12-3.12,11.12-8.08s-4.08-8-14.16-8h-24.8v16.08h27.84ZM1826.61,617.47c10.24,0,14.48-3.76,14.48-9.6,0-4.8-5.12-7.92-13.04-7.92h-28.4v17.52h26.96Z"/>
+    </g>
+    <g>
+      <line class="cls-4" x1="820.19" y1="597.71" x2="1599.62" y2="597.71"/>
+      <path class="cls-2" d="M762.08,597.55c1.19-2.68,6-3.61,8.99-3.75,4.51-.21,8.92-.15,13.46-.12l5.92-8.52-2.58-.04v-4.1s5.64,0,5.64,0l7.24-9.82h5.09s-9.2,22.35-9.2,22.35l20.52.88,3.75-6.81h3.37s-1.76,10.08-1.76,10.08l1.76,10.1h-3.36s-3.77-6.82-3.77-6.82l-20.5.89,9.2,22.35h-5.09s-7.24-9.82-7.24-9.82h-5.64s0-4.11,0-4.11l2.58-.03-5.92-8.52c-4.54.04-8.96.09-13.46-.12-2.99-.14-7.81-1.08-8.99-3.78v-.3Z"/>
+    </g>
+  </g>
+</symbol>
+</svg>
   <nav class="dot-nav" aria-label="Navegação dos slides"></nav>
 
   <main class="presentation">
@@ -479,12 +618,22 @@
     <!-- 01 · TÍTULO -->
     <section class="slide title-slide">
       <div class="slide-inner">
-        <div class="slide-counter">01 / 18</div>
+        <div class="slide-counter">01 / 19</div>
         <div class="hero">
+          <svg class="logo-hero animate delay-1" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg>
           <div class="hero-badge animate delay-1">Pitch · Equipe Sigma · UFAL</div>
           <div class="eyebrow mono animate delay-2">Aerolyze · Conformidade aeroespacial</div>
           <h1 class="animate delay-3">Peças certas, <span class="accent-text">antes do voo.</span></h1>
           <p class="subtitle animate delay-4">Análise de conformidade de peças e lotes com Rust e IA. Validar primeiro, analisar depois.</p>
+          <ul class="team-members animate delay-5" aria-label="Integrantes da Equipe Sigma">
+            <li>Camila Maria Farias Silva</li>
+            <li>Luana Marina Santos Ferro</li>
+            <li>Matheus Lopes dos Santos</li>
+            <li>Mauricio Mateus dos Santos</li>
+            <li>Pedro Henrique Balbino Rocha</li>
+            <li>Tainara Gomes de Oliveira</li>
+            <li>Rian Antonio da Silva Gaião</li>
+          </ul>
         </div>
       </div>
     </section>
@@ -493,20 +642,21 @@
     <section class="slide stats-slide hero-stat">
       <div class="slide-inner">
         <div class="slide-tag"><b>I</b> · Contexto</div>
-        <div class="slide-counter">02 / 18</div>
+        <div class="slide-counter">02 / 19</div>
         <div class="stat-block">
           <div class="stat-label animate delay-1">Custo da má qualidade na indústria</div>
           <div class="stat-value animate delay-2">15–20<span class="unit">% da receita</span></div>
           <p class="subtitle animate delay-3">É o que muitas fabricantes gastam com refugo, retrabalho e devoluções, segundo a ASQ. E só 31% dizem entender esse impacto financeiro por inteiro.</p>
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 03 · ESCALADA DE CUSTO -->
     <section class="slide stats-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>I</b> · Contexto</div>
-        <div class="slide-counter">03 / 18</div>
+        <div class="slide-counter">03 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Quanto custa descobrir tarde</div>
           <h2 class="animate delay-2">Cada fase que o erro <span class="accent-text">sobrevive</span> encarece a correção</h2>
@@ -535,13 +685,14 @@
         </div>
         <div class="src animate delay-5">Fonte: NASA JSC, Error Cost Escalation Through the Project Life Cycle (INCOSE, 2004).</div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 04 · CASOS REAIS -->
     <section class="slide grid-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>I</b> · Contexto</div>
-        <div class="slide-counter">04 / 18</div>
+        <div class="slide-counter">04 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Casos reais</div>
           <h2 class="animate delay-2">Quando a conformidade é <span class="danger-text">presumida</span></h2>
@@ -562,13 +713,14 @@
         </div>
         <div class="src animate delay-3">Fontes: Aviation Business News (24/02/2026); Flying Magazine (11/07/2025), com base no relatório final do NTSB.</div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 05 · DADO NEGLIGENCIADO -->
     <section class="slide comparison-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>I</b> · Contexto</div>
-        <div class="slide-counter">05 / 18</div>
+        <div class="slide-counter">05 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">A dor</div>
           <h2 class="animate delay-2">Milhares de peças por semestre. Um lote ruim vira <span class="accent-text">linha de planilha.</span></h2>
@@ -594,23 +746,25 @@
           </div>
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 06 · CITAÇÃO / STORYTELLING -->
     <section class="slide quote-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>II</b> · Proposta</div>
-        <div class="slide-counter">06 / 18</div>
+        <div class="slide-counter">06 / 19</div>
         <blockquote class="statement animate delay-1">Numa longarina ou num atuador de flap, <span class="accent-text">“quase conforme”</span> não existe.</blockquote>
         <p class="subtitle animate delay-2">Para quem fabrica peças de aeronaves e veículos, uma peça fora do padrão é um risco para pessoas.</p>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 07 · HISTÓRIA DO LOTE -->
     <section class="slide comparison-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>II</b> · Proposta</div>
-        <div class="slide-counter">07 / 18</div>
+        <div class="slide-counter">07 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Uma história, dois destinos</div>
           <h2 class="animate delay-2">O mesmo lote, forno a <span class="danger-text">280 °C</span> (limite: 250 °C)</h2>
@@ -636,13 +790,14 @@
           </div>
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 08 · SOLUÇÃO · ETAPAS -->
     <section class="slide steps-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>II</b> · Proposta</div>
-        <div class="slide-counter">08 / 18</div>
+        <div class="slide-counter">08 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Nossa solução</div>
           <h2 class="animate delay-2"><span class="accent-text">Validar primeiro,</span> analisar depois</h2>
@@ -666,13 +821,14 @@
           </li>
         </ol>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 09 · POR QUE RUST · ESTATÍSTICAS -->
     <section class="slide stats-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>III</b> · Tecnologia</div>
-        <div class="slide-counter">09 / 18</div>
+        <div class="slide-counter">09 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Por que Rust</div>
           <h2 class="animate delay-2">A maior fonte de falhas graves é a <span class="accent-text">memória</span></h2>
@@ -701,13 +857,14 @@
         </div>
         <div class="src animate delay-5">Fontes: Microsoft MSRC (18/07/2019); Chromium Project, Memory safety; Google Security Blog, Rust in Android (13/11/2025).</div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 10 · RUST · CONTEXTO DA LINGUAGEM -->
     <section class="slide timeline-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>III</b> · Tecnologia</div>
-        <div class="slide-counter">10 / 18</div>
+        <div class="slide-counter">10 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Contexto da linguagem</div>
           <h2 class="animate delay-2">Rust: de projeto pessoal ao <span class="accent-text">kernel do Linux</span></h2>
@@ -736,13 +893,14 @@
           </div>
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 11 · RUST NO NOSSO PROJETO -->
     <section class="slide grid-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>III</b> · Tecnologia</div>
-        <div class="slide-counter">11 / 18</div>
+        <div class="slide-counter">11 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Rust no Aerolyze</div>
           <h2 class="animate delay-2">O que a linguagem nos entrega</h2>
@@ -770,13 +928,14 @@
           </article>
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 12 · ARQUITETURA + STACK -->
     <section class="slide diagram-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>III</b> · Tecnologia</div>
-        <div class="slide-counter">12 / 18</div>
+        <div class="slide-counter">12 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Decisões de projeto</div>
           <h2 class="animate delay-2">Um executável, um banco de dados</h2>
@@ -807,13 +966,14 @@
           </div>
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 13 · DEMO · HUB -->
     <section class="slide hub-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>IV</b> · Demonstração</div>
-        <div class="slide-counter">13 / 18</div>
+        <div class="slide-counter">13 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">O produto</div>
           <h2 class="animate delay-2"><span class="accent-text">Aerolyze Lab:</span> dois modos, sete módulos</h2>
@@ -836,13 +996,14 @@
           </div>
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 14 · DEMO · PIPELINE -->
     <section class="slide diagram-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>IV</b> · Demonstração</div>
-        <div class="slide-counter">14 / 18</div>
+        <div class="slide-counter">14 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Pipeline de análise</div>
           <h2 class="animate delay-2">Três caminhos possíveis, <span class="accent-text">um rastro</span></h2>
@@ -883,13 +1044,14 @@
           </article>
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 15 · DEMO · RESULTADOS -->
     <section class="slide screenshot-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>IV</b> · Demonstração</div>
-        <div class="slide-counter">15 / 18</div>
+        <div class="slide-counter">15 / 19</div>
         <div class="section-heading compact">
           <div class="eyebrow mono animate delay-1">Preview do operador</div>
           <h2 class="animate delay-2">Três estados, nunca só <span class="accent-text">cor</span></h2>
@@ -931,13 +1093,14 @@
         </div>
         <div class="src animate delay-4">Valores ilustrativos do sandbox. O status é o pior entre taxa de defeitos e eficiência.</div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 16 · DEMO · ROTEIRO -->
     <section class="slide steps-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>IV</b> · Demonstração</div>
-        <div class="slide-counter">16 / 18</div>
+        <div class="slide-counter">16 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Ao vivo no navegador</div>
           <h2 class="animate delay-2">Os quatro cenários oficiais</h2>
@@ -961,13 +1124,14 @@
           </li>
         </ol>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 17 · ROADMAP -->
     <section class="slide timeline-slide">
       <div class="slide-inner">
         <div class="slide-tag"><b>V</b> · Próximos passos</div>
-        <div class="slide-counter">17 / 18</div>
+        <div class="slide-counter">17 / 19</div>
         <div class="section-heading">
           <div class="eyebrow mono animate delay-1">Roadmap</div>
           <h2 class="animate delay-2">Do protótipo ao <span class="accent-text">binário Rust</span></h2>
@@ -987,12 +1151,13 @@
           </div>
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
     </section>
 
     <!-- 18 · ENCERRAMENTO -->
     <section class="slide closing-slide">
       <div class="slide-inner">
-        <div class="slide-counter">18 / 18</div>
+        <div class="slide-counter">18 / 19</div>
         <div class="closing-content">
           <div class="eyebrow mono animate delay-1">Em resumo</div>
           <h2 class="animate delay-2" style="max-width:20ch">Conformidade <span class="accent-text">verificada,</span> não presumida.</h2>
@@ -1006,6 +1171,12 @@
           <b>Fontes:</b> NASA JSC / INCOSE (2004) · ASQ, Cost of Quality · Aviation Business News (24/02/2026) · Flying Magazine (11/07/2025) · Microsoft MSRC (2019) · Chromium Project, Memory safety · Google Security Blog, Rust in Android (13/11/2025)
         </div>
       </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 19 · LOGOTIPO -->
+    <section class="slide logo-slide">
+      <svg class="logo-final" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg>
     </section>
 
   </main>
