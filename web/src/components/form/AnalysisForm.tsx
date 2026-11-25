@@ -9,7 +9,7 @@
  */
 import { Play, SlidersHorizontal, X } from "lucide-react";
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { REGRAS_PADRAO } from "../../core/rules";
 import { converterSemValidar, validarFormulario } from "../../core/schemas";
 import type { ErrosFormulario, ValoresFormularioAnalise } from "../../core/schemas";
@@ -17,6 +17,25 @@ import type { AnaliseInput, PecaAeronautica, RegrasAnaliseAero } from "../../cor
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
+
+/** Agrupamento visual compartilhado pelo formulário e pelo modal. */
+function FormSection({ numero, titulo, descricao, children }: {
+  numero: string;
+  titulo: string;
+  descricao?: string;
+  children: ReactNode;
+}) {
+  return (
+    <fieldset className="min-w-0 rounded-xl border border-borda/80 bg-navy-900/35 p-4 sm:p-5 [&_input]:h-10 [&_select]:h-10 [&_input:focus-visible]:ring-2 [&_input:focus-visible]:ring-acento/25 [&_select:focus-visible]:ring-2 [&_select:focus-visible]:ring-acento/25">
+      <legend className="px-2 text-sm font-semibold text-slate-100">
+        <span aria-hidden="true" className="mr-2 font-mono text-xs text-acento">{numero}</span>
+        {titulo}
+      </legend>
+      {descricao && <p className="mb-4 text-xs leading-relaxed text-slate-400">{descricao}</p>}
+      <div className="grid min-w-0 grid-cols-1 items-start gap-4 sm:grid-cols-2">{children}</div>
+    </fieldset>
+  );
+}
 
 export const VALORES_INICIAIS_FORM: ValoresFormularioAnalise = {
   pecaId: "P-001",
@@ -86,8 +105,8 @@ export function AnalysisForm({
   }));
 
   return (
-    <form onSubmit={aoSubmeter} noValidate className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <form onSubmit={aoSubmeter} noValidate className="space-y-5">
+      <FormSection numero="01" titulo="Identificação do lote" descricao="Selecione a peça e informe a data de produção.">
         <Select
           rotulo="Peça aeronáutica"
           placeholder="Selecione uma peça..."
@@ -103,6 +122,8 @@ export function AnalysisForm({
           erro={erroDe("dataLote")}
           onChange={(e) => atualizar("dataLote", e.target.value)}
         />
+      </FormSection>
+      <FormSection numero="02" titulo="Produção" descricao="Informe o volume produzido, as perdas e o tempo do processo.">
         <Input
           rotulo="Quantidade produzida"
           type="number"
@@ -133,6 +154,8 @@ export function AnalysisForm({
           erro={erroDe("horas")}
           onChange={(e) => atualizar("horas", e.target.value)}
         />
+      </FormSection>
+      <FormSection numero="03" titulo="Condições do processo" descricao="Confira as faixas operacionais indicadas abaixo de cada campo.">
         <Input
           rotulo="Temperatura do processo"
           type="number"
@@ -153,9 +176,9 @@ export function AnalysisForm({
           erro={erroDe("pressao")}
           onChange={(e) => atualizar("pressao", e.target.value)}
         />
-      </div>
+      </FormSection>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-borda/80 pt-5">
         <div className="flex flex-wrap gap-2">
           <Button
             type="submit"
@@ -227,11 +250,11 @@ export function LimitsModal({ aberto, regras, onFechar, onSalvar }: LimitsModalP
       role="dialog"
       aria-modal="true"
       aria-labelledby="titulo-modal-limites"
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-navy-950/85 p-4 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md rounded-lg border border-borda bg-grafite-800 shadow-xl">
-        <div className="flex items-center justify-between border-b border-borda px-4 py-3">
-          <h2 id="titulo-modal-limites" className="text-sm font-semibold text-slate-100">
+      <div className="max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-2xl border border-borda bg-grafite-800 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-borda px-5 py-4">
+          <h2 id="titulo-modal-limites" className="text-base font-semibold text-slate-100">
             Configurar Limites de Análise
           </h2>
           <button
@@ -243,8 +266,9 @@ export function LimitsModal({ aberto, regras, onFechar, onSalvar }: LimitsModalP
             <X className="size-4" aria-hidden />
           </button>
         </div>
-        <form onSubmit={salvar} className="space-y-3 p-4">
-          <div className="grid grid-cols-2 gap-3">
+        <form onSubmit={salvar} className="space-y-5 p-4 sm:p-6">
+          <p className="text-sm leading-relaxed text-slate-400">Defina as faixas aceitas para os próximos lotes de produção.</p>
+          <FormSection numero="01" titulo="Temperatura" descricao="Limites operacionais em graus Celsius.">
             <Input
               rotulo="Temperatura mín."
               type="number"
@@ -259,6 +283,8 @@ export function LimitsModal({ aberto, regras, onFechar, onSalvar }: LimitsModalP
               value={form.temperaturaMax}
               onChange={(e) => setForm({ ...form, temperaturaMax: Number(e.target.value) })}
             />
+          </FormSection>
+          <FormSection numero="02" titulo="Pressão" descricao="Limites operacionais em bar.">
             <Input
               rotulo="Pressão mín."
               type="number"
@@ -275,22 +301,25 @@ export function LimitsModal({ aberto, regras, onFechar, onSalvar }: LimitsModalP
               value={form.pressaoMax}
               onChange={(e) => setForm({ ...form, pressaoMax: Number(e.target.value) })}
             />
-          </div>
-          <Input
-            rotulo="Confiança mínima da IA (0 a 1)"
-            type="number"
-            step={0.05}
-            min={0}
-            max={1}
-            value={form.confiancaMinimaIA}
-            onChange={(e) => setForm({ ...form, confiancaMinimaIA: Number(e.target.value) })}
-          />
+          </FormSection>
+          <FormSection numero="03" titulo="Confiança da IA" descricao="Confiança mínima necessária para aceitar o resultado da inteligência artificial.">
+            <Input
+              className="sm:col-span-2"
+              rotulo="Confiança mínima da IA (0 a 1)"
+              type="number"
+              step={0.05}
+              min={0}
+              max={1}
+              value={form.confiancaMinimaIA}
+              onChange={(e) => setForm({ ...form, confiancaMinimaIA: Number(e.target.value) })}
+            />
+          </FormSection>
           {erro && (
-            <p role="alert" className="text-xs text-red-300">
+            <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
               {erro}
             </p>
           )}
-          <div className="flex justify-between gap-2 pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-borda pt-4">
             <Button variante="fantasma" tamanho="sm" onClick={() => setForm({ ...REGRAS_PADRAO })}>
               Restaurar padrão
             </Button>
