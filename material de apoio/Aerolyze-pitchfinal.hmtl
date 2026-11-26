@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aerolyze — Peças certas, antes do voo · Equipe Sigma</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #141318;
+      --bg-soft: #1D1C24;
+      --surface: rgba(255, 255, 255, 0.035);
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --text: #F8FAFC;
+      --text-soft: #94A3B8;
+      --line: rgba(255, 255, 255, 0.09);
+
+      --accent: #28C2C4;
+      --accent-2: #B0AFFA;
+      --accent-3: #7BE7E8;
+
+      --success: #34D399;
+      --warning: #FBBF24;
+      --danger: #FB7185;
+
+      --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.35);
+      --shadow-glow: 0 0 0 1px rgba(40, 194, 196, 0.22), 0 12px 40px rgba(40, 194, 196, 0.14);
+
+      --radius-sm: 14px;
+      --radius-md: 22px;
+      --radius-lg: 28px;
+      --radius-xl: 34px;
+
+      --fs-display: clamp(46px, 6.2vw, 88px);
+      --fs-h2: clamp(28px, 3.4vw, 48px);
+      --fs-h3: clamp(19px, 1.8vw, 24px);
+      --fs-body-lg: clamp(17px, 1.35vw, 21px);
+      --fs-body: clamp(15px, 1.15vw, 17px);
+      --fs-mono: 12px;
+
+      --container-pad-y: 44px;
+      --container-pad-x: 64px;
+      --content-max: 1260px;
+
+      --anim-duration: 0.65s;
+      --anim-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(176, 175, 250, 0.11), transparent 35%),
+        radial-gradient(circle at 85% 25%, rgba(40, 194, 196, 0.11), transparent 32%),
+        linear-gradient(180deg, #16151C 0%, #100F14 100%);
+      color: var(--text);
+      font-family: "Chakra Petch", sans-serif;
+      overflow-x: hidden;
+    }
+
+    svg { display: block; }
+    h1, h2, h3, p, blockquote, ul, ol { margin: 0; }
+
+    .presentation { position: relative; }
+
+    .slide {
+      position: relative;
+      height: 100vh;
+      min-height: 100vh;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: grid;
+      place-items: stretch;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    /* Grade sutil de fundo */
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(circle at center, black 40%, transparent 95%);
+      opacity: 0.35;
+      z-index: 0;
+    }
+
+    .slide-inner {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      width: min(100%, calc(var(--content-max) + (var(--container-pad-x) * 2)));
+      margin: 0 auto;
+      padding: var(--container-pad-y) var(--container-pad-x) 74px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 26px;
+    }
+
+    .slide-counter {
+      position: absolute;
+      top: 26px;
+      right: 44px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-mono);
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+      z-index: 3;
+    }
+
+    .slide-tag {
+      position: absolute;
+      top: 26px;
+      left: 64px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-mono);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      z-index: 3;
+    }
+    .slide-tag b { color: var(--accent); font-weight: 700; }
+
+    .mono {
+      font-family: "JetBrains Mono", monospace;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      font-size: var(--fs-mono);
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subtitle {
+      max-width: 660px;
+      font-size: var(--fs-body-lg);
+      line-height: 1.45;
+      color: var(--text-soft);
+    }
+
+    h1 { font-size: var(--fs-display); line-height: 0.98; letter-spacing: -0.03em; max-width: 13ch; }
+    h2 { font-size: var(--fs-h2); line-height: 1.08; letter-spacing: -0.025em; max-width: 24ch; }
+    h3 { font-size: var(--fs-h3); line-height: 1.15; letter-spacing: -0.015em; }
+    p, li { font-size: var(--fs-body); line-height: 1.45; color: var(--text-soft); }
+
+    .accent-text { color: var(--accent); text-shadow: 0 0 28px rgba(40, 194, 196, 0.25); }
+    .accent-2-text { color: var(--accent-2); }
+    .danger-text { color: var(--danger); }
+    .success-text { color: var(--success); }
+
+    .section-heading { display: flex; flex-direction: column; gap: 8px; }
+
+    /* Layouts divididos: Conteúdo + Ilustração */
+    .split-visual {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .visual-stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      border-radius: var(--radius-xl);
+      background: radial-gradient(circle at center, rgba(40, 194, 196, 0.12) 0%, rgba(255, 255, 255, 0.02) 72%);
+      border: 1px solid rgba(40, 194, 196, 0.22);
+      box-shadow: var(--shadow-glow);
+      text-align: center;
+      gap: 12px;
+    }
+
+    .visual-stage.lilac {
+      background: radial-gradient(circle at center, rgba(176, 175, 250, 0.14) 0%, rgba(255, 255, 255, 0.02) 72%);
+      border-color: rgba(176, 175, 250, 0.25);
+    }
+
+    .float-cute { animation: floatCute 3.4s ease-in-out infinite; }
+    .pulse-soft { animation: pulseSoft 2.8s ease-in-out infinite; }
+
+    @keyframes floatCute {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(1.8deg); }
+    }
+
+    @keyframes pulseSoft {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    /* Capa */
+    .hero { display: flex; flex-direction: column; gap: 18px; }
+    .hero-badge {
+      align-self: flex-start;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(40, 194, 196, 0.3);
+      background: rgba(40, 194, 196, 0.1);
+      color: var(--accent-3);
+      font-size: var(--fs-mono);
+      font-family: "JetBrains Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .logo-hero { width: clamp(230px, 28vw, 420px); height: auto; aspect-ratio: 1610 / 426; }
+
+    .team-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+      padding: 0;
+      list-style: none;
+    }
+    .team-chips li {
+      font-size: 13px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      padding: 5px 12px;
+      border-radius: 999px;
+    }
+
+    /* Cards & Grids */
+    .card-grid, .stats-grid { display: grid; gap: 20px; }
+    .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card, .stat-card, .comparison-col {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(8px);
+    }
+
+    .card { padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+    .card--accent { border-color: rgba(40, 194, 196, 0.35); box-shadow: var(--shadow-glow); }
+
+    .icon-pill {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: rgba(40, 194, 196, 0.12);
+      border: 1px solid rgba(40, 194, 196, 0.28);
+      color: var(--accent);
+    }
+    .icon-pill.danger { background: rgba(251, 113, 133, 0.12); border-color: rgba(251, 113, 133, 0.28); color: var(--danger); }
+    .icon-pill.lilac { background: rgba(176, 175, 250, 0.12); border-color: rgba(176, 175, 250, 0.28); color: var(--accent-2); }
+    .icon-pill.success { background: rgba(52, 211, 153, 0.12); border-color: rgba(52, 211, 153, 0.28); color: var(--success); }
+
+    .card-label, .stat-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: var(--fs-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+
+    /* Estatísticas */
+    .stat-value {
+      font-size: clamp(56px, 9.5vw, 140px);
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      font-weight: 700;
+    }
+    .stat-value .unit { font-size: 0.42em; color: var(--accent); letter-spacing: -0.01em; }
+
+    .stats-grid .stat-card {
+      padding: 24px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .stats-grid .stat-card .stat-value { font-size: clamp(38px, 4.8vw, 68px); }
+    .stat-card.hot { border-color: rgba(251, 113, 133, 0.38); background: linear-gradient(180deg, rgba(251, 113, 133, 0.08), rgba(255, 255, 255, 0.02)); }
+    .stat-card.hot .stat-value { color: var(--danger); }
+    .stat-card.cool { border-color: rgba(40, 194, 196, 0.35); background: linear-gradient(180deg, rgba(40, 194, 196, 0.08), rgba(255, 255, 255, 0.02)); }
+    .stat-card.cool .stat-value { color: var(--accent); }
+
+    /* Comparação */
+    .comparison-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+    .comparison-col { padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+    .comparison-col.accent { border-color: rgba(40, 194, 196, 0.35); box-shadow: var(--shadow-glow); }
+    .comparison-col.danger { border-color: rgba(251, 113, 133, 0.3); }
+    .col-header { display: flex; align-items: center; gap: 14px; }
+    .comparison-col ul { padding: 0; margin: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .comparison-col li { padding-left: 22px; position: relative; color: var(--text); }
+    .comparison-col li::before {
+      content: ""; position: absolute; left: 0; top: 0.58em;
+      width: 8px; height: 8px; border-radius: 99px; background: var(--text-soft);
+    }
+    .comparison-col.accent li::before { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .comparison-col.danger li::before { background: var(--danger); }
+
+    /* Citação */
+    .statement {
+      font-size: clamp(32px, 4.4vw, 60px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    /* Etapas */
+    .steps-list { padding: 0; margin: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .step {
+      display: grid; grid-template-columns: 56px 1fr; gap: 16px; align-items: center;
+      padding: 14px 18px; border-radius: var(--radius-md);
+      background: var(--surface); border: 1px solid var(--line);
+    }
+    .step-num {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: rgba(40, 194, 196, 0.14); color: var(--accent);
+      display: grid; place-items: center; font-weight: 700; font-size: 16px;
+    }
+
+    /* Timeline */
+    .timeline.h { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; position: relative; }
+    .timeline.h.three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+    .timeline.h::before {
+      content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: 0.45;
+    }
+    .timeline-item { display: flex; flex-direction: column; gap: 14px; }
+    .timeline-dot {
+      width: 16px; height: 16px; border-radius: 999px;
+      background: var(--accent); box-shadow: 0 0 0 6px rgba(40, 194, 196, 0.15);
+    }
+    .timeline-copy {
+      padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--line);
+      background: var(--surface); display: flex; flex-direction: column; gap: 6px; height: 100%;
+    }
+    .timeline-item.done .timeline-copy { border-color: rgba(52, 211, 153, 0.35); }
+    .timeline-item.now .timeline-copy { border-color: rgba(40, 194, 196, 0.45); box-shadow: var(--shadow-glow); }
+
+    /* Pills */
+    .pill-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .pill {
+      font-family: "JetBrains Mono", monospace; font-size: var(--fs-mono);
+      padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
+      background: var(--surface); color: var(--text);
+    }
+    .pill.hl { border-color: rgba(40, 194, 196, 0.45); background: rgba(40, 194, 196, 0.12); color: var(--accent-3); }
+
+    /* Arquitetura */
+    .arch { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 190px); gap: 16px; align-items: stretch; }
+    .arch-box {
+      border: 1px dashed rgba(40, 194, 196, 0.45); border-radius: var(--radius-lg);
+      padding: 40px 18px 18px; position: relative; background: rgba(40, 194, 196, 0.04);
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+    }
+    .arch-box > .arch-title { position: absolute; top: 14px; left: 18px; color: var(--accent); font-size: var(--fs-mono); }
+    .arch-node {
+      padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04); display: flex; flex-direction: column; gap: 4px;
+    }
+    .arch-node .mono { font-size: 11px; color: var(--accent-2); }
+    .arch-link { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; color: var(--text-soft); font-size: 11px; }
+    .arch-link::before { content: ""; width: 38px; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+    .arch-db {
+      border-radius: var(--radius-lg); border: 1px solid rgba(176, 175, 250, 0.4);
+      background: rgba(176, 175, 250, 0.08); padding: 18px;
+      display: flex; flex-direction: column; justify-content: center; gap: 8px;
+    }
+
+    /* Hub */
+    .hub { display: grid; grid-template-columns: 1fr minmax(0, 0.95fr) 1fr; gap: 22px; align-items: center; }
+    .hub-col { display: flex; flex-direction: column; gap: 14px; }
+    .hub-node {
+      padding: 16px 18px; border-radius: var(--radius-md); border: 1px solid var(--line);
+      background: var(--surface); display: flex; flex-direction: column; gap: 4px;
+    }
+    .hub-node .mono { font-size: 11px; color: var(--accent); }
+    .hub-center {
+      aspect-ratio: 1 / 1; max-height: 42vh; margin: 0 auto; width: 100%; max-width: 300px;
+      border-radius: 50%; border: 1px solid rgba(40, 194, 196, 0.45);
+      background: radial-gradient(circle, rgba(40, 194, 196, 0.2), rgba(40, 194, 196, 0.03) 72%);
+      box-shadow: var(--shadow-glow);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 20px;
+    }
+    .hub-center .big { font-size: clamp(26px, 2.8vw, 38px); line-height: 1.05; font-weight: 700; }
+
+    /* Pipeline */
+    .pipe { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
+    .pipe-step {
+      padding: 12px 6px; border-radius: 14px; text-align: center; border: 1px solid var(--line);
+      background: var(--surface); display: flex; flex-direction: column; gap: 4px; align-items: center;
+    }
+    .pipe-step .n { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--accent); }
+    .pipe-step .t { font-size: 13px; color: var(--text); font-weight: 600; }
+    .pipe-step.guard { border-color: rgba(251, 191, 36, 0.4); }
+    .pipe-step.guard .n { color: var(--warning); }
+    .pipe-step.ia { border-color: rgba(176, 175, 250, 0.4); }
+    .pipe-step.ia .n { color: var(--accent-2); }
+
+    .path { padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; gap: 8px; }
+    .path.p-val { border-color: rgba(251, 113, 133, 0.4); }
+    .path.p-ia { border-color: rgba(52, 211, 153, 0.4); }
+    .path.p-fb { border-color: rgba(251, 191, 36, 0.4); }
+
+    /* Result cards */
+    .rcard {
+      padding: 22px; border-radius: var(--radius-lg); display: flex; flex-direction: column; gap: 14px;
+      background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-soft);
+    }
+    .rcard.ok { border-color: rgba(52, 211, 153, 0.42); }
+    .rcard.warn { border-color: rgba(251, 191, 36, 0.42); }
+    .rcard.crit { border-color: rgba(251, 113, 133, 0.5); box-shadow: 0 0 32px rgba(251, 113, 133, 0.14); }
+    .badge {
+      align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 14px; border-radius: 999px; font-weight: 700; font-size: 14px;
+    }
+    .badge svg { width: 17px; height: 17px; }
+    .badge.ok { background: rgba(52, 211, 153, 0.14); color: var(--success); border: 1px solid rgba(52, 211, 153, 0.35); }
+    .badge.warn { background: rgba(251, 191, 36, 0.14); color: var(--warning); border: 1px solid rgba(251, 191, 36, 0.35); }
+    .badge.crit { background: rgba(251, 113, 133, 0.14); color: var(--danger); border: 1px solid rgba(251, 113, 133, 0.4); }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric { padding: 10px 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.24); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .metric .k { font-family: "JetBrains Mono", monospace; font-size: 10px; text-transform: uppercase; color: var(--text-soft); }
+    .metric .v { font-size: 22px; color: var(--text); font-weight: 700; }
+    .rec { font-size: 14px; color: var(--text); border-top: 1px solid var(--line); padding-top: 10px; }
+    .origin { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--accent-3); text-transform: uppercase; }
+
+    .src { font-size: 11px; color: var(--text-soft); opacity: 0.75; font-family: "JetBrains Mono", monospace; }
+
+    /* Botões & Footer */
+    .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 48px; padding: 0 24px; border-radius: 999px; font-size: 15px; font-weight: 600;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-3)); color: #081012; box-shadow: var(--shadow-glow); }
+    .btn-secondary { background: var(--surface); border: 1px solid var(--line); color: var(--text); }
+
+    .slide-footer {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 52px; z-index: 3;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 44px 0 64px; border-top: 1px solid var(--line);
+      background: rgba(16, 15, 20, 0.65); backdrop-filter: blur(6px);
+    }
+    .slide-footer .foot-note { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-soft); opacity: 0.75; }
+    .logo-foot { height: 28px; width: auto; aspect-ratio: 1610 / 426; }
+    .logo-slide { place-items: center; }
+    .logo-final { width: min(74vw, 820px); height: auto; aspect-ratio: 1610 / 426; }
+
+    /* Animações */
+    .animate {
+      opacity: 0; transform: translateY(18px);
+      transition: opacity var(--anim-duration) var(--anim-ease), transform var(--anim-duration) var(--anim-ease);
+    }
+    .animate.in { opacity: 1; transform: translateY(0); }
+    .delay-1 { transition-delay: 80ms; }
+    .delay-2 { transition-delay: 160ms; }
+    .delay-3 { transition-delay: 240ms; }
+    .delay-4 { transition-delay: 320ms; }
+
+    /* Navegação lateral */
+    .dot-nav {
+      position: fixed; top: 50%; right: 16px; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 8px; z-index: 100;
+    }
+    .dot-nav button {
+      width: 9px; height: 9px; border-radius: 999px; border: none; padding: 0;
+      background: rgba(255, 255, 255, 0.22); cursor: pointer; transition: all 0.2s ease;
+    }
+    .dot-nav button.active { background: var(--accent); box-shadow: 0 0 0 5px rgba(40, 194, 196, 0.16); transform: scale(1.2); }
+
+    @media (max-width: 1050px) {
+      :root { --container-pad-x: 28px; }
+      .split-visual, .cols-3, .cols-4, .comparison-grid, .arch, .hub, .timeline.h, .timeline.h.three { grid-template-columns: 1fr; }
+      .timeline.h::before { display: none; }
+      .pipe { grid-template-columns: repeat(3, 1fr); }
+      .arch-box { grid-template-columns: 1fr; }
+      .slide-tag { left: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGOTIPO OFICIAL AEROLYZE -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <symbol id="aerolyze-logo" viewBox="245 287 1610 426">
+      <defs>
+        <style>
+          .cls-1 { fill: url(#Gradiente_sem_nome_79); }
+          .cls-2 { fill: url(#Gradiente_sem_nome_35); }
+          .cls-3 { fill: url(#Gradiente_sem_nome_179); }
+          .cls-4 { fill: none; stroke: url(#Gradiente_sem_nome_18); stroke-miterlimit: 10; stroke-width: 5px; }
+          .cls-5 { fill: #fff; }
+          .cls-6 { fill: url(#Gradiente_sem_nome_179-3); }
+          .cls-7 { fill: url(#Gradiente_sem_nome_179-2); }
+          .cls-8 { fill: url(#Gradiente_sem_nome_79-5); }
+          .cls-9 { fill: url(#Gradiente_sem_nome_79-4); }
+          .cls-10 { fill: url(#Gradiente_sem_nome_79-2); }
+          .cls-11 { fill: url(#Gradiente_sem_nome_79-3); }
+        </style>
+        <linearGradient id="Gradiente_sem_nome_79" x1="321.56" y1="443.28" x2="535.81" y2="354.58" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#0a6ad8"/><stop offset="1" stop-color="#0deec2"/>
+        </linearGradient>
+        <linearGradient id="Gradiente_sem_nome_179" x1="377.48" y1="358.89" x2="720.61" y2="451.19" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#0a6ad8"/><stop offset="1" stop-color="#06f4f6"/>
+        </linearGradient>
+        <linearGradient id="Gradiente_sem_nome_79-2" x1="512.6" y1="569.75" x2="589.89" y2="515.45" xlink:href="#Gradiente_sem_nome_79"/>
+        <linearGradient id="Gradiente_sem_nome_79-3" x1="527.65" y1="529.38" x2="397.1" y2="675.59" xlink:href="#Gradiente_sem_nome_79"/>
+        <linearGradient id="Gradiente_sem_nome_79-4" x1="250.98" y1="504.52" x2="723.6" y2="504.52" xlink:href="#Gradiente_sem_nome_79"/>
+        <linearGradient id="Gradiente_sem_nome_179-2" x1="463.13" y1="616.26" x2="363.57" y2="497.9" xlink:href="#Gradiente_sem_nome_179"/>
+        <linearGradient id="Gradiente_sem_nome_79-5" x1="250.98" y1="617.78" x2="723.6" y2="617.78" xlink:href="#Gradiente_sem_nome_79"/>
+        <linearGradient id="Gradiente_sem_nome_179-3" x1="487.45" y1="539.16" x2="607.55" y2="667.62" xlink:href="#Gradiente_sem_nome_179"/>
+        <linearGradient id="Gradiente_sem_nome_18" x1="820.19" y1="597.71" x2="1599.62" y2="597.71" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#0892dd"/><stop offset="1" stop-color="#06f4f6"/>
+        </linearGradient>
+        <linearGradient id="Gradiente_sem_nome_35" x1="762.08" y1="597.71" x2="824.28" y2="597.71" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#06f4f6"/><stop offset="1" stop-color="#0892dd"/>
+        </linearGradient>
+      </defs>
+      <g>
+        <g>
+          <path class="cls-1" d="M519.24,303.36c4.86,0,9.63.37,14.3,1.04-1.93-1.02-3.89-2-5.89-2.9-12.73-5.69-26.31-8.58-40.36-8.58s-27.63,2.89-40.35,8.58c-20.49,9.15-37.46,25.2-47.79,45.24l-1.94,4-.14.32-88.08,181.8,42.05-11.85,75.49-155.81c.66-1.5,1.37-2.96,2.11-4.35.63-1.18,1.29-2.33,1.99-3.47,16.58-32.08,50.03-54.02,88.63-54.02Z"/>
+          <path class="cls-3" d="M615.45,429.37l-37.89-78.2-.25-.55-1.91-3.94c-9.3-18.03-24.02-32.84-41.86-42.29-4.67-.67-9.44-1.04-14.3-1.04-38.6,0-72.05,21.94-88.63,54.02,9.28-15.21,24.11-25.89,41.09-29.98,5.04-1.21,10.26-1.85,15.59-1.85s10.55.64,15.59,1.85c18.25,4.39,34.02,16.38,43.07,33.44.74,1.39,1.45,2.86,2.11,4.36l48.73,100.59,26.75,55.22,42.05,11.85-50.14-103.49Z"/>
+        </g>
+        <path class="cls-10" d="M650.52,575.98l8.48,18.21,12.46,25.71c18.81,11.79,33.32,20.88,52.14,32.67l-42.49-87.69-176.26-49.69v-88.11c0-23.56-5.45-46.8-15.92-67.91l-1.23-2.47c-.09-.17-.25-.26-.42-.26v172.01l163.24,47.52Z"/>
+        <path class="cls-11" d="M487.29,676.59v-148.12l-163.91,48.04-7.81,17.69,154.15-43.46v112.02l-33.48,22.24c-2.87,1.9-4.59,5.12-4.59,8.56v13.53l55.63-15.68,46.25,13.04v-10.62l-46.25-17.23Z"/>
+        <path class="cls-9" d="M487.29,528.46v-172.01c-.17,0-.33.09-.42.26l-1.23,2.47c-10.47,21.11-15.92,44.35-15.92,67.91v88.11l-176.26,49.69-42.49,87.69c18.81-11.79,33.32-20.88,52.14-32.67l12.46-25.71,7.81-17.69,163.91-48.04Z"/>
+        <path class="cls-7" d="M487.29,528.46v-172.01c-.17,0-.33.09-.42.26l-1.23,2.47c-10.47,21.11-15.92,44.35-15.92,67.91v88.11l-176.26,49.69-42.49,87.69c18.81-11.79,33.32-20.88,52.14-32.67l12.46-25.71,7.81-17.69,163.91-48.04Z"/>
+        <path class="cls-8" d="M542.92,693.56c0-3.44-1.72-6.66-4.59-8.56l-33.48-22.24v-112.02l154.15,43.46-8.48-18.21-163.24-47.52v148.12l46.25,17.23v10.62l9.38,2.64v-13.53Z"/>
+        <path class="cls-6" d="M542.92,693.56c0-3.44-1.72-6.66-4.59-8.56l-33.48-22.24v-112.02l154.15,43.46-8.48-18.21-163.24-47.52v148.12l46.25,17.23,9.38,13.27v-13.53Z"/>
+      </g>
+      <g>
+        <g>
+          <path class="cls-5" d="M876.45,497.5h-67.78l-11.91,23.47h-34.68l62.7-115.24h39.93l62.7,115.24h-39.06l-11.91-23.47ZM866.46,477.88l-23.99-46.94h-.18l-23.82,46.94h47.99Z"/>
+          <path class="cls-5" d="M940.9,405.73h108.94v24.87h-75.31v22.59h57.8v19.62h-57.8v23.29h77.06v24.87h-110.69v-115.24Z"/>
+          <path class="cls-5" d="M1067.7,405.73h72.51c42.73,0,56.04,13.49,56.04,34.15,0,11.56-4.9,22.77-20.84,27.5v.35c18.21,4.2,20.14,16.99,20.14,29.07v24.17h-33.63v-24.17c0-11.91-4.55-17.34-18.92-17.34h-41.68v41.51h-33.63v-115.24ZM1141.79,459.85c16.64,0,22.59-6.13,22.59-15.06,0-8.23-6.13-14.19-25.57-14.19h-37.48v29.25h40.46Z"/>
+          <path class="cls-5" d="M1212.02,462.82c0-31.88,23.64-59.2,75.66-59.2s75.66,27.32,75.66,59.2-21.89,60.25-75.66,60.25-75.66-25.75-75.66-60.25ZM1327.96,463c0-18.74-12.96-34.5-40.28-34.5s-40.28,15.76-40.28,34.5c0,20.67,12.79,35.2,40.28,35.2s40.28-15.41,40.28-35.2Z"/>
+          <path class="cls-5" d="M1382.61,405.73h16.46v100.88h80.56v14.36h-97.03v-115.24Z"/>
+          <path class="cls-5" d="M1508.71,473.33l-67.78-67.6h23.29l53.42,53.77h.35l53.07-53.77h22.07l-67.96,67.6v47.64h-16.46v-47.64Z"/>
+          <path class="cls-5" d="M1602.58,509.59l94.58-89.32v-.17h-93.35v-14.36h115.59v12.26l-93.53,88.45v.18h92.3v14.36h-115.59v-11.38Z"/>
+          <path class="cls-5" d="M1740.95,405.73h105.43v14.36h-88.97v36.43h71.46v12.96h-71.46v37.13h90.72v14.36h-107.19v-115.24Z"/>
+        </g>
+        <g>
+          <path class="cls-5" d="M1629.73,571.39h7.52v46.08h36.8v6.56h-44.32v-52.64Z"/>
+          <path class="cls-5" d="M1751.26,611.55h-40.32l-7.52,12.48h-8.24l32-52.64h8.48l32,52.64h-8.88l-7.52-12.48ZM1747.73,605.63l-16.56-27.52h-.16l-16.56,27.52h33.28Z"/>
+          <path class="cls-5" d="M1792.13,571.39h32.96c13.76,0,20.24,5.28,20.24,13.6,0,5.76-3.52,10.16-8.96,11.44v.08c7.2,1.04,11.76,5.68,11.76,12,0,9.44-6.4,15.52-19.44,15.52h-36.56v-52.64ZM1827.49,594.03c6.8,0,11.12-3.12,11.12-8.08s-4.08-8-14.16-8h-24.8v16.08h27.84ZM1826.61,617.47c10.24,0,14.48-3.76,14.48-9.6,0-4.8-5.12-7.92-13.04-7.92h-28.4v17.52h26.96Z"/>
+        </g>
+        <g>
+          <line class="cls-4" x1="820.19" y1="597.71" x2="1599.62" y2="597.71"/>
+          <path class="cls-2" d="M762.08,597.55c1.19-2.68,6-3.61,8.99-3.75,4.51-.21,8.92-.15,13.46-.12l5.92-8.52-2.58-.04v-4.1s5.64,0,5.64,0l7.24-9.82h5.09s-9.2,22.35-9.2,22.35l20.52.88,3.75-6.81h3.37s-1.76,10.08-1.76,10.08l1.76,10.1h-3.36s-3.77-6.82-3.77-6.82l-20.5.89,9.2,22.35h-5.09s-7.24-9.82-7.24-9.82h-5.64s0-4.11,0-4.11l2.58-.03-5.92-8.52c-4.54.04-8.96.09-13.46-.12-2.99-.14-7.81-1.08-8.99-3.78v-.3Z"/>
+        </g>
+      </g>
+    </symbol>
+  </svg>
+
+  <nav class="dot-nav" aria-label="Navegação dos slides"></nav>
+
+  <main class="presentation">
+
+    <!-- 01 · CAPA -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-counter">01 / 19</div>
+        <div class="split-visual">
+          <div class="hero">
+            <svg class="logo-hero animate delay-1" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg>
+            <div class="hero-badge animate delay-1">Pitch · Equipe Sigma · UFAL</div>
+            <h1 class="animate delay-2">Peças certas, <span class="accent-text">antes do voo.</span></h1>
+            <p class="subtitle animate delay-3">Conformidade aeroespacial com Rust e IA. Validar primeiro, analisar depois.</p>
+            <ul class="team-chips animate delay-4">
+              <li>Camila Silva</li>
+              <li>Luana Ferro</li>
+              <li>Matheus Santos</li>
+              <li>Mauricio Santos</li>
+              <li>Pedro Rocha</li>
+              <li>Tainara Oliveira</li>
+              <li>Rian Gaião</li>
+            </ul>
+          </div>
+
+          <!-- Ilustração fofa: Aviãozinho de papel + Radar -->
+          <div class="visual-stage animate delay-3">
+            <svg class="float-cute" width="230" height="230" viewBox="0 0 220 220" fill="none">
+              <circle cx="110" cy="110" r="88" stroke="#28C2C4" stroke-width="1.5" stroke-dasharray="6 6" opacity="0.5"/>
+              <circle cx="110" cy="110" r="58" stroke="#B0AFFA" stroke-width="1.5" opacity="0.35"/>
+              <!-- Nuvens fofas -->
+              <path d="M42 145 C34 145 30 138 35 132 C36 123 48 121 53 128 C60 127 64 135 59 142 C57 145 50 145 42 145 Z" fill="#B0AFFA" opacity="0.35"/>
+              <path d="M162 72 C156 72 153 67 157 62 C158 55 167 54 171 59 C176 58 179 64 175 70 C173 72 168 72 162 72 Z" fill="#7BE7E8" opacity="0.35"/>
+              <!-- Aviãozinho -->
+              <path d="M48 112 L174 64 L138 158 L108 128 L150 82 L94 120 Z" fill="url(#planeGrad)" stroke="#F8FAFC" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M94 120 L108 152 L118 136" fill="#1D1C24" stroke="#7BE7E8" stroke-width="2"/>
+              <!-- Estrelinhas -->
+              <circle cx="64" cy="68" r="3" fill="#7BE7E8"/>
+              <circle cx="166" cy="144" r="4" fill="#B0AFFA"/>
+              <defs>
+                <linearGradient id="planeGrad" x1="48" y1="64" x2="174" y2="158" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#28C2C4"/><stop offset="1" stop-color="#B0AFFA"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <span class="mono" style="font-size:11px; color:var(--accent-3)">Inspeção preditiva de lotes</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 · CONTEXTO · ESTATÍSTICA HERO -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>I</b> · Contexto</div>
+        <div class="slide-counter">02 / 19</div>
+        <div class="split-visual">
+          <div>
+            <div class="stat-label animate delay-1">Custo da má qualidade na indústria</div>
+            <div class="stat-value animate delay-2">15–20<span class="unit">%</span></div>
+            <p class="subtitle animate delay-3" style="margin-top:14px">da receita vai embora com refugo, retrabalho e devoluções (ASQ). Só 31% medem esse prejuízo por completo.</p>
+          </div>
+          <!-- Figurinha: Cofrinho / Alerta financeiro -->
+          <div class="visual-stage lilac animate delay-3">
+            <svg class="float-cute" width="200" height="200" viewBox="0 0 200 200" fill="none">
+              <rect x="44" y="54" width="112" height="92" rx="26" fill="#23222A" stroke="#FB7185" stroke-width="3.5"/>
+              <circle cx="80" cy="92" r="6" fill="#F8FAFC"/>
+              <circle cx="120" cy="92" r="6" fill="#F8FAFC"/>
+              <!-- Expressão triste fofa -->
+              <path d="M88 118 Q100 108 112 118" stroke="#FB7185" stroke-width="4" stroke-linecap="round"/>
+              <!-- Gota -->
+              <path d="M138 66 C138 66 146 76 146 81 C146 85.4 142.4 89 138 89 C133.6 89 130 85.4 130 81 C130 76 138 66 138 66 Z" fill="#7BE7E8"/>
+              <!-- Moeda caindo -->
+              <circle cx="100" cy="34" r="14" fill="#FBBF24" stroke="#141318" stroke-width="2.5"/>
+              <text x="95" y="39" fill="#141318" font-family="JetBrains Mono" font-weight="bold" font-size="14">$</text>
+            </svg>
+            <span class="mono" style="font-size:11px; color:var(--danger)">Desperdício silencioso na linha</span>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 03 · ESCALADA DE CUSTO -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>I</b> · Contexto</div>
+        <div class="slide-counter">03 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Quanto custa descobrir tarde</div>
+          <h2 class="animate delay-2">Cada etapa que o erro <span class="accent-text">sobrevive</span> multiplica o prejuízo</h2>
+        </div>
+        <div class="stats-grid cols-4">
+          <div class="stat-card animate delay-1">
+            <div class="stat-label">01 · Requisitos</div>
+            <div class="stat-value">1x</div>
+            <p>Ajuste documental rápido.</p>
+          </div>
+          <div class="stat-card animate delay-2">
+            <div class="stat-label">02 · Produção</div>
+            <div class="stat-value">7–16x</div>
+            <p>Lote parado e recalibração.</p>
+          </div>
+          <div class="stat-card animate delay-3">
+            <div class="stat-label">03 · Teste</div>
+            <div class="stat-value">21–78x</div>
+            <p>Desmontagem de conjuntos.</p>
+          </div>
+          <div class="stat-card hot animate delay-4">
+            <div class="stat-label">04 · Operação</div>
+            <div class="stat-value">1.615x</div>
+            <p>Recall e aeronave no solo.</p>
+          </div>
+        </div>
+        <div class="src animate delay-4">Fonte: NASA JSC / INCOSE (2004).</div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 04 · CASOS REAIS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>I</b> · Contexto</div>
+        <div class="slide-counter">04 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Casos reais</div>
+          <h2 class="animate delay-2">Quando a conformidade é <span class="danger-text">presumida</span></h2>
+        </div>
+        <div class="card-grid cols-2">
+          <article class="card animate delay-1">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="card-label">AOG Technics · 2019–2023</span>
+              <div class="icon-pill danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M9 15l6-6M15 15l-6-6"/></svg>
+              </div>
+            </div>
+            <div class="stat-value" style="font-size:clamp(44px,5.5vw,76px); color:var(--danger)">£39,3 mi</div>
+            <h3>60 mil peças com laudos forjados</h3>
+            <p>Componentes de motor CFM56 entraram na cadeia sem rastreio real.</p>
+          </article>
+          <article class="card animate delay-2">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="card-label">Alaska Airlines 1282 · 2024</span>
+              <div class="icon-pill danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              </div>
+            </div>
+            <div class="stat-value" style="font-size:clamp(44px,5.5vw,76px); color:var(--danger)">0 parafusos</div>
+            <h3>Porta instalada sem retenção</h3>
+            <p>Falha de supervisão na linha de montagem apontada pelo NTSB.</p>
+          </article>
+        </div>
+        <div class="src animate delay-3">Fontes: Aviation Business News (2026); Relatório Final NTSB (2025).</div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 05 · A DOR -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>I</b> · Contexto</div>
+        <div class="slide-counter">05 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">O gargalo</div>
+          <h2 class="animate delay-2">Um lote ruim vira só <span class="accent-text">mais uma linha na planilha</span></h2>
+        </div>
+        <div class="comparison-grid">
+          <div class="comparison-col danger animate delay-1">
+            <div class="col-header">
+              <div class="icon-pill danger"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div>
+              <h3>Como é hoje</h3>
+            </div>
+            <ul>
+              <li>Desvio de temperatura só aparece no teste final</li>
+              <li>Dias perdidos tentando achar a causa</li>
+              <li>Dados históricos mortos em planilhas</li>
+            </ul>
+          </div>
+          <div class="comparison-col accent animate delay-2">
+            <div class="col-header">
+              <div class="icon-pill"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
+              <h3>O que o Aerolyze entrega</h3>
+            </div>
+            <ul>
+              <li>Bloqueio imediato na entrada da linha</li>
+              <li>Plano B determinístico se a IA falhar</li>
+              <li>Alerta acionável com rastro completo</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 06 · CITAÇÃO + MASCOTE AERO-BOT -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>II</b> · Proposta</div>
+        <div class="slide-counter">06 / 19</div>
+        <div class="split-visual">
+          <div>
+            <blockquote class="statement animate delay-1">Numa longarina ou atuador de flap, <span class="accent-text">“quase conforme”</span> não existe.</blockquote>
+            <p class="subtitle animate delay-2" style="margin-top:16px">Peça fora do padrão na aviação é risco direto para vidas.</p>
+          </div>
+          <!-- Mascote Aero-Bot fofo -->
+          <div class="visual-stage animate delay-3">
+            <svg class="float-cute" width="215" height="215" viewBox="0 0 200 200" fill="none">
+              <line x1="100" y1="20" x2="100" y2="44" stroke="#28C2C4" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="100" cy="16" r="7" fill="#7BE7E8"/>
+              <rect x="32" y="76" width="14" height="34" rx="7" fill="#B0AFFA"/>
+              <rect x="154" y="76" width="14" height="34" rx="7" fill="#B0AFFA"/>
+              <rect x="46" y="44" width="108" height="92" rx="28" fill="#23222A" stroke="#28C2C4" stroke-width="4"/>
+              <rect x="60" y="64" width="80" height="44" rx="16" fill="#121116"/>
+              <path d="M74 86 Q82 76 90 86" stroke="#34D399" stroke-width="4.5" stroke-linecap="round"/>
+              <path d="M110 86 Q118 76 126 86" stroke="#34D399" stroke-width="4.5" stroke-linecap="round"/>
+              <ellipse cx="72" cy="96" rx="6" ry="3.5" fill="#FB7185" opacity="0.8"/>
+              <ellipse cx="128" cy="96" rx="6" ry="3.5" fill="#FB7185" opacity="0.8"/>
+              <path d="M93 96 Q100 103 107 96" stroke="#F8FAFC" stroke-width="3" stroke-linecap="round"/>
+              <path d="M46 112 L16 124 L46 128 Z" fill="#28C2C4"/>
+              <path d="M154 112 L184 124 L154 128 Z" fill="#28C2C4"/>
+              <circle cx="146" cy="134" r="20" fill="#34D399"/>
+              <path d="M138 134 L144 140 L155 128" stroke="#121116" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="mono" style="font-size:11px; color:var(--accent-3)">Aero-Bot · Tolerância Zero</span>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 07 · HISTÓRIA DO LOTE (280°C) -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>II</b> · Proposta</div>
+        <div class="slide-counter">07 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Na prática</div>
+          <h2 class="animate delay-2">Mesmo lote, forno a <span class="danger-text">280 °C</span> (limite: 250 °C)</h2>
+        </div>
+        <div class="comparison-grid">
+          <div class="comparison-col danger animate delay-1">
+            <div class="col-header">
+              <div class="icon-pill danger"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></div>
+              <h3>Sem validação</h3>
+            </div>
+            <ul>
+              <li>Lote avança para montagem sem bloqueio</li>
+              <li>Defeito só aparece no teste ou em voo</li>
+              <li>Correção custa até <strong>1.615x mais</strong></li>
+            </ul>
+          </div>
+          <div class="comparison-col accent animate delay-2">
+            <div class="col-header">
+              <div class="icon-pill"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+              <h3>Com Aerolyze</h3>
+            </div>
+            <ul>
+              <li><strong>Guard clause</strong> barra o lote na entrada</li>
+              <li>IA nem é acionada (custo zero de inferência)</li>
+              <li>Peça segregada antes de seguir na linha</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 08 · SOLUÇÃO EM 4 PASSOS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>II</b> · Proposta</div>
+        <div class="slide-counter">08 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Arquitetura de decisão</div>
+          <h2 class="animate delay-2"><span class="accent-text">Validar primeiro,</span> analisar depois</h2>
+        </div>
+        <ol class="steps-list">
+          <li class="step animate delay-1">
+            <div class="step-num mono">01</div>
+            <div><h3>Entrada</h3><p>Operador informa peça, temperatura, pressão e quantidade.</p></div>
+          </li>
+          <li class="step animate delay-2">
+            <div class="step-num mono">02</div>
+            <div><h3>Guard Clauses</h3><p>Regras rígidas barram anomalias antes de chamar a IA.</p></div>
+          </li>
+          <li class="step animate delay-3">
+            <div class="step-num mono">03</div>
+            <div><h3>IA + Plano B</h3><p>Se a confiança for menor que 0,70, o fallback determinístico assume.</p></div>
+          </li>
+          <li class="step animate delay-4">
+            <div class="step-num mono">04</div>
+            <div><h3>Veredito</h3><p>Dashboard exibe status, risco de falha e ação recomendada.</p></div>
+          </li>
+        </ol>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 09 · POR QUE RUST -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>III</b> · Tecnologia</div>
+        <div class="slide-counter">09 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Segurança crítica</div>
+          <h2 class="animate delay-2">Por que <span class="accent-text">Rust</span> no núcleo?</h2>
+        </div>
+        <div class="stats-grid cols-4">
+          <div class="stat-card hot animate delay-1">
+            <div class="stat-label">Microsoft</div>
+            <div class="stat-value">~70%</div>
+            <p>dos CVEs vêm de falhas de memória.</p>
+          </div>
+          <div class="stat-card hot animate delay-2">
+            <div class="stat-label">Chromium</div>
+            <div class="stat-value">~70%</div>
+            <p>dos bugs críticos são de memória.</p>
+          </div>
+          <div class="stat-card cool animate delay-3">
+            <div class="stat-label">Android 2025</div>
+            <div class="stat-value">&lt;20%</div>
+            <p>com adoção de Rust no código novo.</p>
+          </div>
+          <div class="stat-card cool animate delay-4">
+            <div class="stat-label">Rust vs C++</div>
+            <div class="stat-value">1000x</div>
+            <p>menos falhas de memória por linha.</p>
+          </div>
+        </div>
+        <div class="src animate delay-4">Fontes: Microsoft MSRC; Chromium Project; Google Security Blog (2025).</div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 10 · EVOLUÇÃO DO RUST -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>III</b> · Tecnologia</div>
+        <div class="slide-counter">10 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Maturidade</div>
+          <h2 class="animate delay-2">De projeto pessoal ao <span class="accent-text">Kernel do Linux</span></h2>
+        </div>
+        <div class="timeline h">
+          <div class="timeline-item animate delay-1">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2006</div><h3>Início</h3><p>Criado por Graydon Hoare.</p></div>
+          </div>
+          <div class="timeline-item animate delay-2">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2010</div><h3>Mozilla</h3><p>Apresentado ao público.</p></div>
+          </div>
+          <div class="timeline-item animate delay-3">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2015</div><h3>Rust 1.0</h3><p>Primeira versão estável.</p></div>
+          </div>
+          <div class="timeline-item animate delay-4">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2021</div><h3>Foundation</h3><p>Apoio das big techs.</p></div>
+          </div>
+          <div class="timeline-item now animate delay-4">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">2022+</div><h3>Linux &amp; Android</h3><p>Drivers nativos em produção.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 11 · RUST NO AEROLYZE + MASCOTE FERRIS FOFO -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>III</b> · Tecnologia</div>
+        <div class="slide-counter">11 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Garantias na prática</div>
+          <h2 class="animate delay-2">O que o Rust entrega ao Aerolyze</h2>
+        </div>
+        <div class="split-visual">
+          <div class="card-grid cols-2">
+            <article class="card animate delay-1">
+              <div class="card-label">01 · Ownership</div>
+              <h3>Segurança na compilação</h3>
+              <p>Zero vazamento ou acesso inválido em tempo de execução.</p>
+            </article>
+            <article class="card animate delay-2">
+              <div class="card-label">02 · Sem GC</div>
+              <h3>Latência previsível</h3>
+              <p>Sem pausas inesperadas; IA roda no mesmo processo.</p>
+            </article>
+            <article class="card animate delay-3">
+              <div class="card-label">03 · Result&lt;T, E&gt;</div>
+              <h3>Zero Panic</h3>
+              <p>Toda falha vira um estado tratado pelo sistema.</p>
+            </article>
+            <article class="card card--accent animate delay-4">
+              <div class="card-label">04 · Traits</div>
+              <h3>Binário único</h3>
+              <p>Contratos modulares compilados em um só executável.</p>
+            </article>
+          </div>
+
+          <!-- Mascote Ferris (Caranguejo fofo do Rust) -->
+          <div class="visual-stage lilac animate delay-3">
+            <svg class="float-cute" width="210" height="190" viewBox="0 0 220 190" fill="none">
+              <!-- Garras -->
+              <path d="M46 82 C24 68 20 96 42 102 Z" fill="#FB7185"/>
+              <path d="M174 82 C196 68 200 96 178 102 Z" fill="#FB7185"/>
+              <!-- Patinhas -->
+              <path d="M58 134 L40 152 M74 140 L62 158 M146 140 L158 158 M162 134 L180 152" stroke="#FB7185" stroke-width="6" stroke-linecap="round"/>
+              <!-- Corpo fofo -->
+              <ellipse cx="110" cy="106" rx="64" ry="44" fill="#FB7185"/>
+              <ellipse cx="110" cy="98" rx="54" ry="34" fill="#FDA4AF" opacity="0.35"/>
+              <!-- Olhos -->
+              <circle cx="90" cy="86" r="10" fill="#141318"/>
+              <circle cx="130" cy="86" r="10" fill="#141318"/>
+              <circle cx="93" cy="83" r="3.5" fill="#FFF"/>
+              <circle cx="133" cy="83" r="3.5" fill="#FFF"/>
+              <!-- Sorriso -->
+              <path d="M98 106 Q110 116 122 106" stroke="#141318" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+            <span class="mono" style="font-size:11px; color:var(--accent-2)">Powered by Rust</span>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 12 · ARQUITETURA + STACK -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>III</b> · Tecnologia</div>
+        <div class="slide-counter">12 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Desenho do sistema</div>
+          <h2 class="animate delay-2">Um executável, um banco de dados</h2>
+        </div>
+        <div class="arch animate delay-3">
+          <div class="arch-box">
+            <div class="arch-title mono">aerolyze · binário Rust</div>
+            <div class="arch-node"><h3>Interface</h3><p>Dashboard e entrada</p><span class="mono">View</span></div>
+            <div class="arch-node"><h3>Controlador</h3><p>Orquestra e valida</p><span class="mono">IAnalise</span></div>
+            <div class="arch-node"><h3>Modelo</h3><p>Regras de domínio</p><span class="mono">Core</span></div>
+            <div class="arch-node"><h3>SistemaIA</h3><p>Inferência local</p><span class="mono">modelo_ia.bin</span></div>
+            <div class="arch-node"><h3>Repositório</h3><p>Persistência SQL</p><span class="mono">IRepositorio</span></div>
+            <div class="arch-node"><h3>Fallback</h3><p>Cálculo determinístico</p><span class="mono">Plano B</span></div>
+          </div>
+          <div class="arch-link mono">SQL</div>
+          <div class="arch-db"><span class="mono" style="font-size:11px; color:var(--accent-2)">Storage</span><h3>SGBD</h3><p>Peças, lotes e logs</p></div>
+        </div>
+        <div class="animate delay-4">
+          <div class="pill-row">
+            <span class="pill hl">React 19</span>
+            <span class="pill hl">TypeScript</span>
+            <span class="pill">Vite</span>
+            <span class="pill">Tailwind</span>
+            <span class="pill">Zustand</span>
+            <span class="pill">Zod</span>
+            <span class="pill">Vitest</span>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 13 · DEMO · HUB -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>IV</b> · Demonstração</div>
+        <div class="slide-counter">13 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Protótipo interativo</div>
+          <h2 class="animate delay-2"><span class="accent-text">Aerolyze Lab:</span> 2 modos, 7 módulos</h2>
+        </div>
+        <div class="hub animate delay-3">
+          <div class="hub-col">
+            <div class="hub-node"><span class="mono">/dev</span><h3>7 Sandboxes</h3><p>Um módulo por integrante.</p></div>
+            <div class="hub-node"><span class="mono">/dev/pipeline</span><h3>Inspetor</h3><p>Tempo e status por etapa.</p></div>
+            <div class="hub-node"><span class="mono">/dev/logs</span><h3>Rastreabilidade</h3><p>Filtros por traceId.</p></div>
+          </div>
+          <div class="hub-center pulse-soft">
+            <span class="mono" style="color:var(--accent-3)">web lab</span>
+            <div class="big">AEROLYZE<br/>LAB</div>
+            <span class="mono">React · TS</span>
+          </div>
+          <div class="hub-col">
+            <div class="hub-node"><span class="mono">/operador</span><h3>Visão de Fábrica</h3><p>Formulário e alertas.</p></div>
+            <div class="hub-node"><span class="mono">/dev/flags</span><h3>4 Cenários</h3><p>Testes em um clique.</p></div>
+            <div class="hub-node"><span class="mono">/dev/estado</span><h3>config.toml</h3><p>Regras prontas pro Rust.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 14 · DEMO · PIPELINE -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>IV</b> · Demonstração</div>
+        <div class="slide-counter">14 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Fluxo de execução</div>
+          <h2 class="animate delay-2">Três caminhos, <span class="accent-text">um rastro auditável</span></h2>
+        </div>
+        <div class="pipe animate delay-2">
+          <div class="pipe-step"><span class="n">01</span><span class="t">Input</span></div>
+          <div class="pipe-step guard"><span class="n">02</span><span class="t">Campos</span></div>
+          <div class="pipe-step guard"><span class="n">03</span><span class="t">Peça</span></div>
+          <div class="pipe-step guard"><span class="n">04</span><span class="t">Lote</span></div>
+          <div class="pipe-step ia"><span class="n">05</span><span class="t">IA</span></div>
+          <div class="pipe-step ia"><span class="n">06</span><span class="t">Score</span></div>
+          <div class="pipe-step"><span class="n">07</span><span class="t">Fallback</span></div>
+          <div class="pipe-step"><span class="n">08</span><span class="t">Status</span></div>
+          <div class="pipe-step"><span class="n">09</span><span class="t">Salvar</span></div>
+        </div>
+        <div class="card-grid cols-3">
+          <article class="path p-val animate delay-1">
+            <span class="mono" style="color:var(--danger)">1 · VALIDACAO</span>
+            <h3>Guard reprovou</h3>
+            <p>IA é pulada. Lote sai Crítico na hora.</p>
+          </article>
+          <article class="path p-ia animate delay-2">
+            <span class="mono" style="color:var(--success)">2 · IA</span>
+            <h3>Confiança &ge; 0,70</h3>
+            <p>Diagnóstico da IA aprovado sem fallback.</p>
+          </article>
+          <article class="path p-fb animate delay-3">
+            <span class="mono" style="color:var(--warning)">3 · FALLBACK</span>
+            <h3>IA falhou ou duvidou</h3>
+            <p>Cálculo determinístico garante resposta.</p>
+          </article>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 15 · DEMO · RESULTADOS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>IV</b> · Demonstração</div>
+        <div class="slide-counter">15 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Dashboard do operador</div>
+          <h2 class="animate delay-2">Três estados claros de <span class="accent-text">decisão</span></h2>
+        </div>
+        <div class="card-grid cols-3">
+          <article class="rcard ok animate delay-1">
+            <span class="badge ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Ótimo</span>
+            <div class="metrics">
+              <div class="metric"><div class="k">Produtiv.</div><div class="v">50 pç/h</div></div>
+              <div class="metric"><div class="k">Defeitos</div><div class="v">1%</div></div>
+              <div class="metric"><div class="k">Eficiência</div><div class="v">100%</div></div>
+              <div class="metric"><div class="k">Risco</div><div class="v">2%</div></div>
+            </div>
+            <div class="rec">Seguir operação normal.</div>
+            <div class="origin">Origem: IA</div>
+          </article>
+          <article class="rcard warn animate delay-2">
+            <span class="badge warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v4M12 17.5v.01"/></svg>Atenção</span>
+            <div class="metrics">
+              <div class="metric"><div class="k">Produtiv.</div><div class="v">45 pç/h</div></div>
+              <div class="metric"><div class="k">Defeitos</div><div class="v">3,6%</div></div>
+              <div class="metric"><div class="k">Eficiência</div><div class="v">90%</div></div>
+              <div class="metric"><div class="k">Risco</div><div class="v">7%</div></div>
+            </div>
+            <div class="rec">Investigar desvios e recalibrar.</div>
+            <div class="origin">Origem: Fallback</div>
+          </article>
+          <article class="rcard crit animate delay-3">
+            <span class="badge crit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 2h8l6 6v8l-6 6H8l-6-6V8l6-6z"/><path d="M12 8v5M12 16.5v.01"/></svg>Crítico</span>
+            <div class="metrics">
+              <div class="metric"><div class="k">Produtiv.</div><div class="v">30 pç/h</div></div>
+              <div class="metric"><div class="k">Defeitos</div><div class="v">7%</div></div>
+              <div class="metric"><div class="k">Eficiência</div><div class="v">60%</div></div>
+              <div class="metric"><div class="k">Risco</div><div class="v">27%</div></div>
+            </div>
+            <div class="rec">Segregar lote e auditar agora.</div>
+            <div class="origin">Origem: IA</div>
+          </article>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 16 · DEMO · CENÁRIOS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>IV</b> · Demonstração</div>
+        <div class="slide-counter">16 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Ao vivo no navegador</div>
+          <h2 class="animate delay-2">Os quatro cenários de teste</h2>
+        </div>
+        <div class="card-grid cols-2">
+          <div class="card animate delay-1">
+            <span class="card-label">Cenário A</span>
+            <h3>Lote conforme</h3>
+            <p>Validação ok + IA com alta confiança.</p>
+          </div>
+          <div class="card animate delay-2">
+            <span class="card-label" style="color:var(--danger)">Cenário B</span>
+            <h3>Forno a 280 °C</h3>
+            <p>Barrado na guard clause; IA nem roda.</p>
+          </div>
+          <div class="card animate delay-3">
+            <span class="card-label" style="color:var(--warning)">Cenário C</span>
+            <h3>Confiança &lt; 0,70</h3>
+            <p>IA insegura; fallback assume o controle.</p>
+          </div>
+          <div class="card animate delay-4">
+            <span class="card-label" style="color:var(--accent-2)">Cenário D</span>
+            <h3>Timeout da IA</h3>
+            <p>Falha simulada; operação continua sem parar.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 17 · ROADMAP -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-tag"><b>V</b> · Futuro</div>
+        <div class="slide-counter">17 / 19</div>
+        <div class="section-heading">
+          <div class="eyebrow mono animate delay-1">Roadmap</div>
+          <h2 class="animate delay-2">Do protótipo web ao <span class="accent-text">binário Rust</span></h2>
+        </div>
+        <div class="timeline h three">
+          <div class="timeline-item done animate delay-1">
+            <div class="timeline-dot" style="background:var(--success)"></div>
+            <div class="timeline-copy"><div class="mono" style="color:var(--success)">Onda 1 · Concluída</div><h3>MVP Aerolyze Lab</h3><p>7 módulos, pipeline, fallback e cenários ao vivo.</p></div>
+          </div>
+          <div class="timeline-item now animate delay-2">
+            <div class="timeline-dot"></div>
+            <div class="timeline-copy"><div class="mono">Onda 2 · Próximo</div><h3>Análise Avançada</h3><p>Simulador dimensional, gráficos e exportação PDF/CSV.</p></div>
+          </div>
+          <div class="timeline-item animate delay-3">
+            <div class="timeline-dot" style="background:var(--accent-2)"></div>
+            <div class="timeline-copy"><div class="mono" style="color:var(--accent-2)">Onda 3 · Alvo</div><h3>Núcleo Nativo Rust</h3><p>Motor Rust, SQLx e modelo_ia.bin integrado.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 18 · ENCERRAMENTO -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="slide-counter">18 / 19</div>
+        <div class="split-visual">
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div class="eyebrow mono animate delay-1">Em resumo</div>
+            <h2 class="animate delay-2">Conformidade <span class="accent-text">verificada,</span> nunca presumida.</h2>
+            <p class="subtitle animate delay-3">Validação local, IA e plano B determinístico em um único executável Rust.</p>
+            <div class="cta-row animate delay-4">
+              <span class="btn btn-primary">Dúvidas e comentários</span>
+              <span class="btn btn-secondary">Equipe Sigma · UFAL</span>
+            </div>
+          </div>
+
+          <!-- Figurinha fofa de encerramento: Foguete / Avião decolando com sucesso -->
+          <div class="visual-stage animate delay-3">
+            <svg class="float-cute" width="200" height="200" viewBox="0 0 200 200" fill="none">
+              <circle cx="100" cy="100" r="76" fill="#28C2C4" opacity="0.1"/>
+              <!-- Corpo do foguete fofo -->
+              <path d="M100 32 C124 58 130 96 124 128 L76 128 C70 96 76 58 100 32 Z" fill="#F8FAFC"/>
+              <path d="M100 32 C112 46 118 62 120 76 L80 76 C82 62 88 46 100 32 Z" fill="#28C2C4"/>
+              <!-- Janelinha -->
+              <circle cx="100" cy="96" r="14" fill="#141318" stroke="#B0AFFA" stroke-width="4"/>
+              <circle cx="96" cy="92" r="4" fill="#7BE7E8"/>
+              <!-- Asas -->
+              <path d="M76 108 L54 134 L76 128 Z" fill="#B0AFFA"/>
+              <path d="M124 108 L146 134 L124 128 Z" fill="#B0AFFA"/>
+              <!-- Chama fofa -->
+              <path d="M88 128 Q100 164 112 128 Z" fill="#FBBF24"/>
+              <path d="M93 128 Q100 150 107 128 Z" fill="#FB7185"/>
+            </svg>
+            <span class="mono" style="font-size:11px; color:var(--success)">Pronto para decolar</span>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer"><span class="foot-note">Equipe Sigma · UFAL · CLP</span><svg class="logo-foot"><use href="#aerolyze-logo"/></svg></div>
+    </section>
+
+    <!-- 19 · LOGOTIPO FINAL -->
+    <section class="slide logo-slide">
+      <svg class="logo-final" role="img" aria-label="Aerolyze Lab"><use href="#aerolyze-logo"/></svg>
+    </section>
+
+  </main>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const dotsContainer = document.querySelector('.dot-nav');
+
+    function scrollToSlide(index) {
+      const clamped = Math.max(0, Math.min(index, slides.length - 1));
+      slides[clamped].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    slides.forEach((_, index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-label', `Slide ${index + 1}`);
+      btn.addEventListener('click', () => scrollToSlide(index));
+      dotsContainer.appendChild(btn);
+    });
+
+    function setActiveDot(index) {
+      dotsContainer.querySelectorAll('button').forEach((dot, i) => dot.classList.toggle('active', i === index));
+    }
+
+    const slideObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) setActiveDot(slides.indexOf(entry.target));
+      });
+    }, { threshold: 0.6 });
+
+    const animationObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          animationObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    slides.forEach(slide => slideObserver.observe(slide));
+    document.querySelectorAll('.animate').forEach(el => animationObserver.observe(el));
+
+    function getCurrentSlideIndex() {
+      let closestIndex = 0, closestDistance = Infinity;
+      slides.forEach((slide, index) => {
+        const d = Math.abs(slide.getBoundingClientRect().top);
+        if (d < closestDistance) { closestDistance = d; closestIndex = index; }
+      });
+      return closestIndex;
+    }
+
+    document.addEventListener('keydown', (event) => {
+      const i = getCurrentSlideIndex();
+      if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); scrollToSlide(i + 1); }
+      if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); scrollToSlide(i - 1); }
+      if (event.key === 'Home') { event.preventDefault(); scrollToSlide(0); }
+      if (event.key === 'End') { event.preventDefault(); scrollToSlide(slides.length - 1); }
+    });
+
+    setActiveDot(0);
+  </script>
+</body>
+</html>
