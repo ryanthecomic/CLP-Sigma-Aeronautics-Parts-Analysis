@@ -4,7 +4,7 @@
 
 ## 1. Objetivo do MVP
 
-O **Aerolyze Lab** é o scaffold web em React com **Modo Desenvolvedor** da plataforma Aerolyze para análise de conformidade de peças aeroespaciais. O objetivo não é entregar o backend Rust definitivo nesta etapa, mas permitir que os **7 membros da Equipe Sigma** trabalhem em paralelo — cada um em seu módulo isolado — contra contratos congelados e um motor mock compartilhado que respeita o princípio central da arquitetura:
+O **Aerolyze Lab** é o scaffold web em React com **Modo Desenvolvedor** da plataforma Aerolyze para análise de conformidade de peças aeroespaciais. O objetivo não é entregar o backend Rust definitivo nesta etapa, mas permitir que os **7 membros da Equipe Sigma** trabalhem em paralelo — cada um em seu módulo isolado — contra contratos congelados e um motor de análise compartilhado (mock determinístico por padrão e NVIDIA NIM opcional) que respeita o princípio central da arquitetura:
 
 > **"Validar primeiro, analisar depois."** Dados inválidos são barrados nas guard clauses antes de qualquer chamada à IA. Se a IA falhar ou retornar confiança abaixo do mínimo, o algoritmo determinístico de fallback assume.
 
@@ -31,7 +31,10 @@ npm run build    # Checagem estrita de tipos (tsc -b) + build de produção (Vit
 
 ```text
 web/
+  .env.example              # Template da IA real (NVIDIA NIM)
+  vite.config.ts            # Proxy /api/nvidia (chave no servidor) + configuração do Vitest
   src/
+    vite-env.d.ts           # Tipos das variáveis VITE_* da IA
     core/                   # TypeScript puro (sem React!)
       types.ts              # Contratos de domínio (Membro 1)
       contracts.ts          # Contratos de arquitetura e interfaces (Membro 2)
@@ -117,7 +120,7 @@ export const meuModuloManifest: ReactModuleManifest = {
 
 ---
 
-## 6. Como o motor mock funciona
+## 6. Como o motor de análise funciona
 
 Fluxo unidirecional:
 
@@ -131,7 +134,7 @@ Etapas de `runAnalysis(input)`:
 2. **Validar a peça** (`validarPeca`: cadastro + `conforme === true`).
 3. **Validar o lote** (quantidade inteira > 0, `0 <= defeituosos <= quantidade`, temperatura 150–250 °C, pressão 3–10 bar).
 4. **Parada precoce:** se qualquer guard clause reprovar, a execução para antes da IA e retorna `origem: "VALIDACAO"`, `status: "CRITICO"` e a lista de `ValidationIssue`.
-5. **Inferência da IA mock** (`simularIA`): determinística por seed (`mulberry32`), permitindo simular `NENHUM`, `EXCECAO`, `TIMEOUT`, `BAIXA_CONFIANCA` e `SAIDA_INVALIDA`.
+5. **Inferência da IA (provedor ativo):** o mock (`simularIA`) é determinístico por seed (`mulberry32`) e permite simular `NENHUM`, `EXCECAO`, `TIMEOUT`, `BAIXA_CONFIANCA` e `SAIDA_INVALIDA`; com `VITE_IA_PROVEDOR=nvidia`, a mesma etapa chama a NVIDIA NIM de forma assíncrona e passa pela mesma validação de saída.
 6. **Verificação de confiança e fallback** (`executarFallback`): se a IA falhar, retornar saída inválida ou confiança `< confiancaMinimaIA` (`0.70`), o fallback determinístico calcula produtividade, taxa de defeitos, eficiência, conformidade e previsão de falhas.
 7. **Classificação** (`classificar`): `OTIMO`, `ATENCAO` ou `CRITICO` conforme taxa de defeitos e eficiência.
 8. **Persistência e telemetria:** salva na chave `aerolyze-lab:v1` via Repositório e emite `PipelineStep[]` e `LogEvent[]` correlacionados por `traceId`.
@@ -174,6 +177,10 @@ nesse caso a chave fica visível no bundle.
 4. Os modos de falha do sandbox (`EXCECAO`, `TIMEOUT`, `BAIXA_CONFIANCA`,
    `SAIDA_INVALIDA`) continuam funcionando com o provedor real para demonstração.
 5. Os 4 cenários oficiais em `/dev/flags` forçam o mock, pois comparam valores exatos.
+
+Para testar a chamada real sem passar pelo pipeline, use o card **"Provedor de IA real
+— NVIDIA NIM"** em `/dev/modulo/ia`. Ele mostra a saída normalizada e o motivo do
+fallback, quando houver.
 
 Testes que exercitam a NVIDIA usam `fetchImpl` falso e nunca tocam a rede. Em
 `MODE=test`, `provedorIAAtivo()` sempre devolve `mock`.

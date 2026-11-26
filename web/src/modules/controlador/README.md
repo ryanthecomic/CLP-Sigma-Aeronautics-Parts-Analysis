@@ -22,7 +22,7 @@ O Controlador implementa o princípio **“Validar primeiro, analisar depois”*
 - `src/core/guardClauses.ts`: validação pura da entrada.
 - `src/core/pipeline.ts`: orquestração da execução.
 - `src/core/pipelineSteps.ts`: IDs, timing, criação do lote e passos interrompidos.
-- `src/core/mockEngine.ts`: gateway assíncrono e composição do motor mock.
+- `src/core/mockEngine.ts`: gateway assíncrono e composição do motor de análise com o provedor ativo (mock ou NVIDIA NIM).
 - `src/core/eventBus.ts`: emissão síncrona de logs e passos.
 - `src/store/`: slices Zustand e atualização reativa da sessão.
 - `src/modules/controlador/sandbox.tsx`: interface do Módulo 2.
@@ -38,6 +38,11 @@ analisar(input: AnaliseInput, opcoes?: OpcoesAnalise): Promise<ResultadoAnalise>
 ```
 
 Não deve ser implementado pela View. Views devem usar `useAnalysis()`.
+
+`OpcoesAnalise.provedorIA` é opcional e permite substituir o provedor ativo apenas
+naquela execução (por exemplo, os cenários oficiais usam `mockAIProvider` para manter
+os valores esperados). Sem ele, `mockEngine` usa o provedor selecionado em
+`src/core/iaProvedor.ts` (`mock` ou `nvidia`).
 
 ### `GuardResult`
 

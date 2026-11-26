@@ -22,6 +22,7 @@ A escolha é feita por `VITE_IA_PROVEDOR` (`mock` por padrão, `nvidia` para a A
 | `src/core/iaProvedor.ts` | Seleciona o provedor ativo (`mock` ou `nvidia`). |
 | `src/modules/ia/sandbox.tsx` | Sandbox do módulo (`/dev/modulo/ia`) com simulador mock e inferência real. |
 | `src/modules/ia/manifest.ts` | Ficha do módulo para o Modo Desenvolvedor. |
+| `web/.env.example` | Template das variáveis da NVIDIA; a chave real fica em `.env.local` (ignorado). |
 | `src/test/mockEngine/ia.test.ts` | Testes do mock: determinismo, falhas, confiança, metadados e ausência de rede. |
 | `src/test/mockEngine/iaNvidia.test.ts` | Testes do provedor real com `fetchImpl` falso (sem rede). |
 | `src/test/mockEngine/ia.integracao.test.ts` | Testes de integração com o pipeline do Controlador. |
@@ -69,6 +70,12 @@ equivalente, ou o modo direto (chave visível no bundle) via
 
 ## Modos de falha
 
+Os dois provedores aceitam os mesmos `ModoFalhaIA`. A tabela abaixo descreve o
+comportamento do **mock**; no provedor real, `NENHUM` usa a confiança devolvida pelo
+modelo (ou `config.confianca`, se informada), `EXCECAO`/`TIMEOUT` não chamam a rede e
+`SAIDA_INVALIDA` devolve uma única saída corrompida. O Controlador reage da mesma
+forma em ambos.
+
 | Modo | O que a IA faz | Como o Controlador reage |
 |---|---|---|
 | `NENHUM` | Saída válida com confiança entre 0,78 e 0,98 (ou o valor de `config.confianca`, se informado). | Aceita se a confiança for maior ou igual ao mínimo (0,70 por padrão). |
@@ -79,7 +86,11 @@ equivalente, ou o modo direto (chave visível no bundle) via
 
 ## Como reproduzir uma falha
 
-No sandbox (`/dev/modulo/ia`): escolha o modo, informe a seed e clique em **Executar inferência**. O botão **Executar 2× e comparar** confirma que duas execuções idênticas dão o mesmo resultado.
+No sandbox (`/dev/modulo/ia`): escolha o modo, informe a seed e clique em **Executar
+inferência** para o mock. O botão **Executar 2× e comparar** confirma que duas
+execuções idênticas dão o mesmo resultado. O card **Provedor de IA real — NVIDIA NIM**
+executa o mesmo modo de falha contra a API real; os modos `EXCECAO` e `TIMEOUT` são
+simulados sem chamar a rede.
 
 Em código:
 
@@ -107,7 +118,9 @@ simularIA({
 
 ## Sandbox
 
-- Cabeçalho do modelo (`nome@versão`, status e precisão).
+- Card do **provedor real NVIDIA NIM**: status do pipeline (`mock` ou NVIDIA), modelo,
+  endpoint, timeout, botão "Executar inferência real" e saída/erro em JSON.
+- Cabeçalho do modelo mock (`nome@versão`, status e precisão).
 - Slider de confiança (ativo apenas no modo `NENHUM`, com aviso quando travado).
 - Seletor de modo de falha, campo de seed (validada) e campo de tempo limite.
 - Saída em JSON bruto (`NaN` e `Infinity` aparecem literalmente), lista de problemas do schema e detalhes do `ErroIA`.
@@ -121,7 +134,8 @@ simularIA({
 | Cada modo de falha é reproduzível | `ia.test.ts` (bloco "modos de falha") e `ia.integracao.test.ts` |
 | O Controlador aciona o fallback a partir de cada falha | `ia.integracao.test.ts` |
 | O sandbox mostra a saída bruta e se o fallback seria acionado | Sandbox (`/dev/modulo/ia`) |
-| A IA não faz chamadas de rede | `ia.test.ts` (bloco "sem rede") |
+| O mock não faz chamadas de rede | `ia.test.ts` (bloco "sem rede") |
+| O provedor real normaliza a resposta e aciona o fallback em falha | `iaNvidia.test.ts` e integração com `runAnalysis` |
 
 ## Como rodar os testes
 
@@ -134,10 +148,11 @@ npx vitest run src/test/mockEngine/ia.integracao.test.ts
 
 ## Limitações e pontos em aberto
 
-- É um **mock**: a "confiança" não é uma probabilidade calibrada.
+- No **mock**, a "confiança" não é uma probabilidade calibrada; ela existe para exercitar a fronteira de fallback.
 - `SaidaBrutaIA` é tipada como válida, então as corrupções ficam limitadas a valores inválidos (fora da faixa, `NaN`, infinito, texto vazio). Simular campo ausente ou tipo errado exigiria que o provedor devolvesse `unknown`, o que é uma mudança de contrato do Módulo 2.
 - Com `confiancaMinimaIA` igual a `0`, nenhuma confiança pode ser "baixa".
 - Com um mínimo acima de 0,78, o modo `NENHUM` do mock também pode cair no fallback.
 - O provedor real depende de rede e de uma chave válida; sem eles, o Controlador aciona o fallback. A confiança devolvida pelo LLM não é uma probabilidade calibrada.
+- O timeout real usa `AbortController` com `VITE_NVIDIA_TIMEOUT_MS`; o modo `TIMEOUT` do sandbox é demonstrativo e não espera a rede.
 - O proxy do Vite existe apenas em dev/preview. Build estático em produção exige um backend/proxy ou o modo direto (com a chave exposta no bundle).
 - A resposta do modelo é validada pelo mesmo schema do mock; qualquer divergência de tipo/faixa vira fallback, nunca `ResultadoAnalise`.

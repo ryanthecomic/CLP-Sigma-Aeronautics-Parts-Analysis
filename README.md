@@ -14,7 +14,7 @@ A plataforma **Aerolyze** é um sistema de análise de conformidade de peças ae
 > Peças não conformes ou lotes com parâmetros fora da faixa operacional são barrados localmente pelas *guard clauses* do Controlador **antes** de acionar a Inteligência Artificial. Se o módulo de IA falhar, exceder o tempo limite, retornar saída inválida ou apresentar confiança abaixo do mínimo configurado (`0.70`), o algoritmo determinístico de reserva (*fallback*) assume automaticamente.
 
 Este repositório reúne:
-1. **`web/` (`Aerolyze Lab`):** Ambiente web modular em **React 19 + TypeScript + Vite + Tailwind CSS + Zustand + Zod + Vitest**, com **Modo Desenvolvedor (`/dev`)**, **7 sandboxes isolados** (um para cada membro da equipe) e **Preview do Operador (`/operador`)**.
+1. **`web/` (`Aerolyze Lab`):** Ambiente web modular em **React 19 + TypeScript + Vite + Tailwind CSS + Zustand + Zod + Vitest**, com **Modo Desenvolvedor (`/dev`)**, **7 sandboxes isolados** (um para cada membro da equipe), **Preview do Operador (`/operador`)** e **IA mock determinística ou provedor real NVIDIA NIM** (opcional, via `.env.local`).
 2. **`material de apoio/`:** Especificação acadêmica completa (Requisitos, 31 Histórias de Usuário com BDD, diagramas Mermaid e *Gap Analysis*), divisão operacional de tarefas, prompt gerador e acervo de diagramas UML/apresentações em PDF.
 3. **`agents-sigma/` & `.agents/`:** Pacote de **Rules**, **Skills** e **Subagentes** configurados para governança arquitetural, desenvolvimento assistido por IA e portão automatizado de qualidade.
 
@@ -58,7 +58,9 @@ CLP-Sigma-Aeronautics-Parts-Analysis/
 │   └── clp- apresentação 2 (1).pdf / clp- apresentação 3.pdf
 └── web/                                                   # Aplicação Web — Aerolyze Lab (React 19 + TS)
     ├── README.md                                          # Documentação técnica detalhada do front-end
+    ├── .env.example                                       # Template da IA real (NVIDIA NIM)
     ├── package.json
+    ├── vite.config.ts                                     # Proxy /api/nvidia + configuração do Vitest
     └── src/
         ├── core/                                          # Núcleo TypeScript puro (sem React): tipos, regras, IA mock/NVIDIA, fallback, pipeline
         ├── modules/                                       # 7 módulos independentes (sandboxes carregados via React.lazy)
@@ -66,7 +68,7 @@ CLP-Sigma-Aeronautics-Parts-Analysis/
         ├── components/                                    # UI Kit, formulários (AnalysisForm/LimitsModal) e resultados (ResultCard)
         ├── hooks/                                         # Hooks de fachada (useAnalysis, useDados, usePipeline, useLogs, useFlags)
         ├── store/                                         # Estado global Zustand em slices conectado ao eventBus
-        └── test/                                          # Suíte automatizada (mockEngine.test.ts e ui.test.tsx)
+        └── test/                                          # Suíte Vitest (mock engine, IA/NVIDIA, UI e integração)
 ```
 
 ---
@@ -77,7 +79,7 @@ CLP-Sigma-Aeronautics-Parts-Analysis/
 |---|---|---|
 | **Planejamento & Especificação Acadêmica (Principal)** | [`material de apoio/PLANEJAMENTO-E-ESPECIFICACAO-ACADEMICA-Aerolyze.md`](./material%20de%20apoio/PLANEJAMENTO-E-ESPECIFICACAO-ACADEMICA-Aerolyze.md) | Consolidação das 3 gerações do projeto, diagramas Mermaid (Pacotes, Componentes, Classes, Sequência e Guard Clauses), equações matemáticas, Requisitos (`RF01–RF27`, `RNF01–RNF10`), **31 Histórias de Usuário (`HU-01` a `HU-31`) com BDD**, *Gap Analysis* e Roadmap em 3 Ondas. |
 | **Divisão de Tarefas e Backlog por Membro** | [`material de apoio/DIVISAO-TAREFAS-Aerolyze-MVP.md`](./material%20de%20apoio/DIVISAO-TAREFAS-Aerolyze-MVP.md) | Matriz de propriedade de arquivos, alocação dos 7 integrantes, trilhas paralelas, Definição de Pronto (DoD) e convenções de Git/PR. |
-| **Guia Técnico do Front-End (`Aerolyze Lab`)** | [`web/README.md`](./web/README.md) | Arquitetura interna do React, como adicionar/evoluir módulos, contratos do `core/` e funcionamento detalhado do `mockEngine`. |
+| **Guia Técnico do Front-End (`Aerolyze Lab`)** | [`web/README.md`](./web/README.md) | Arquitetura interna do React, como adicionar/evoluir módulos, contratos do `core/`, funcionamento do `mockEngine` e configuração do provedor real NVIDIA NIM. |
 | **Guia de Agentes, Skills e Portão de Qualidade** | [`agents-sigma/README.md`](./agents-sigma/README.md) | Como utilizar as skills (`aerolyze-module-dev`, `aerolyze-contract-change`, `aerolyze-quality-gate`) e os subagentes (`architecture-guardian`, `test-engineer`). |
 
 ---
@@ -97,8 +99,9 @@ cd web
 npm install
 
 # 3. (Opcional) Ative a IA real da NVIDIA NIM
-#    Copie web/.env.example para web/.env.local, preencha NVIDIA_API_KEY
-#    e mantenha VITE_IA_PROVEDOR=nvidia. Sem isso, o mock determinístico é usado.
+cp .env.example .env.local
+#    Edite .env.local: preencha NVIDIA_API_KEY e mantenha VITE_IA_PROVEDOR=nvidia.
+#    Sem isso, o mock determinístico é usado.
 
 # 4. Inicie o servidor de desenvolvimento (Vite)
 npm run dev
@@ -106,7 +109,8 @@ npm run dev
 
 > **Segurança:** a chave da NVIDIA fica em `web/.env.local` (ignorado pelo Git) e é
 > usada apenas pelo proxy do servidor Vite; ela não é incluída no bundle do navegador.
-> Nunca faça commit de `.env.local` nem de chaves em texto puro.
+> Nunca faça commit de `.env.local` nem de chaves em texto puro. Para detalhes de
+> modelo, timeout, modo direto e fallback, veja a **seção 7** de [`web/README.md`](./web/README.md).
 
 Com o servidor rodando, acesse no navegador:
 - **`/dev`** — **Modo Desenvolvedor (padrão):** Hub com os 7 módulos, abertura dos sandboxes individuais (`/dev/modulo/:id`), Inspetor de Pipeline (`/dev/pipeline`), Estado & Contratos + Prévia `config.toml` (`/dev/estado`), Logs do EventBus (`/dev/logs`), Flags & 4 Cenários Oficiais (`/dev/flags`) e Documentação integrada (`/dev/docs`).
