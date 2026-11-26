@@ -9,10 +9,11 @@
  * const resultado = await runAnalysis(input, { repositorio });
  * ```
  */
-import type { AnalysisGateway, ConfigIA, EventBus, OpcoesAnalise, Repository } from "./contracts";
+import type { AIProvider, AnalysisGateway, ConfigIA, EventBus, OpcoesAnalise, Repository } from "./contracts";
 import { eventBus as busPadrao } from "./eventBus";
 import { analysisEngine } from "./fallback";
-import { CONFIG_IA_PADRAO, mockAIProvider } from "./ia";
+import { CONFIG_IA_PADRAO } from "./ia";
+import { provedorIAPadrao } from "./iaProvedor";
 import { executarPipeline } from "./pipeline";
 import type { AnaliseInput, FlagsDev, RegrasAnaliseAero, ResultadoAnalise } from "./types";
 
@@ -29,6 +30,8 @@ export interface OpcoesRunAnalysis {
   flags?: FlagsDev;
   ia?: ConfigIA;
   seed?: number;
+  /** Provedor alternativo; por padrão usa o selecionado em `iaProvedor.ts`. */
+  provedorIA?: AIProvider;
   agora?: () => Date;
 }
 
@@ -40,7 +43,7 @@ export async function runAnalysis(input: AnaliseInput, opcoes: OpcoesRunAnalysis
   const snapshot = opcoes.repositorio.snapshot();
   return executarPipeline(input, {
     repositorio: opcoes.repositorio,
-    ia: mockAIProvider,
+    ia: opcoes.provedorIA ?? provedorIAPadrao(),
     engine: analysisEngine,
     bus: opcoes.bus ?? busPadrao,
     regras: opcoes.regras ?? snapshot.regras,
@@ -73,6 +76,7 @@ export function criarGatewayMock(repositorio: Repository, bus: EventBus = busPad
         ...(opcoes.regras ? { regras: opcoes.regras } : {}),
         ...(opcoes.ia ? { ia: opcoes.ia } : {}),
         ...(opcoes.seed !== undefined ? { seed: opcoes.seed } : {}),
+        ...(opcoes.provedorIA ? { provedorIA: opcoes.provedorIA } : {}),
       });
     },
   };

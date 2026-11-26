@@ -1,5 +1,6 @@
 import { CheckCircle2, Play, XCircle } from "lucide-react";
 import { useState } from "react";
+import { mockAIProvider } from "../../core/ia";
 import { CENARIOS, compararCenario } from "../../core/scenarios";
 import type { Cenario, ComparacaoCenario } from "../../core/scenarios";
 import type { FlagsDev, ResultadoAnalise } from "../../core/types";
@@ -48,6 +49,8 @@ export function FlagsPage() {
       flags: cenario.flags,
       ia: cenario.ia,
       regras: cenario.regras,
+      // Os cenários oficiais comparam resultados exatos: sempre use o mock.
+      provedorIA: mockAIProvider,
     });
     if (!resultado) return;
     setExecucoes((atual) => ({
