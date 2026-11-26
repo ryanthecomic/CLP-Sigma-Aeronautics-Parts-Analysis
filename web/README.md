@@ -15,10 +15,15 @@ O **Aerolyze Lab** é o scaffold web em React com **Modo Desenvolvedor** da plat
 ```bash
 cd web
 npm install
+cp .env.example .env.local   # preencha NVIDIA_API_KEY se quiser a IA real
 npm run dev      # Inicia o servidor de desenvolvimento (abre em /dev)
 npm run test     # Executa os testes unitários, de componentes e de integração (Vitest)
 npm run build    # Checagem estrita de tipos (tsc -b) + build de produção (Vite)
 ```
+
+> **IA real (opcional):** sem `.env.local` o projeto usa o mock determinístico. Para usar a
+> NVIDIA NIM, defina `VITE_IA_PROVEDOR=nvidia` e `NVIDIA_API_KEY` em `web/.env.local`.
+> O `NVIDIA_API_KEY` fica restrito ao proxy do servidor Vite e não entra no bundle do navegador.
 
 ---
 
@@ -34,6 +39,8 @@ web/
       calculations.ts       # Métricas determinísticas puras (Membro 3)
       fallback.ts           # Fallback determinístico e recomendação (Membro 3)
       ia.ts                 # Provedor de IA mock por seed + modos de falha (Membro 4)
+      iaNvidia.ts           # Provedor real NVIDIA NIM (única chamada de rede do core)
+      iaProvedor.ts         # Seleção mock/NVIDIA via VITE_IA_PROVEDOR
       repository.ts         # Única porta para localStorage: aerolyze-lab:v1 (Membro 5)
       seed.ts               # Seed inicial: 5 peças e 6 lotes (Membro 5)
       schemas.ts            # Schemas Zod de persistência e de entrada (Membro 6)
@@ -131,9 +138,51 @@ Etapas de `runAnalysis(input)`:
 
 ---
 
-## 7. Fora de escopo nesta fase
+## 7. Provedor de IA real — NVIDIA NIM
 
-- Modelo de IA real (`modelo_ia.bin` nativo) e backend Rust real.
+Além do mock determinístico, o módulo 4 oferece um provedor real que chama a API
+compatível com OpenAI da NVIDIA. A seleção é feita por variável de ambiente:
+
+| Variável | Onde fica | Papel |
+|---|---|---|
+| `VITE_IA_PROVEDOR` | `web/.env.local` | `mock` (padrão) ou `nvidia`. |
+| `NVIDIA_API_KEY` | `web/.env.local` | Chave usada **somente** pelo proxy do Vite. |
+| `VITE_NVIDIA_MODELO` | `web/.env.local` | Modelo NIM (padrão: `nvidia/nemotron-3.5-lightning-30b-a3b`). |
+| `VITE_NVIDIA_TIMEOUT_MS` | `web/.env.local` | Timeout da chamada real (padrão: `30000`). |
+| `VITE_NVIDIA_BASE_URL` | opcional | Base da API (padrão em dev: `/api/nvidia`). |
+
+### Como a chave é protegida
+
+O navegador chama `POST /api/nvidia/chat/completions`. O servidor do Vite
+(`vite.config.ts`) injeta `Authorization: Bearer $NVIDIA_API_KEY` e encaminha para
+`https://integrate.api.nvidia.com/v1/chat/completions`. Como a variável **não** tem
+o prefixo `VITE_`, ela não é incluída no bundle enviado ao navegador.
+
+Em `npm run build`, o bundle estático não contém proxy. Para publicar a IA real em
+produção, sirva o app atrás de um backend/proxy equivalente ou, apenas em ambiente
+controlado, use o modo direto (`VITE_NVIDIA_BASE_URL` + `VITE_NVIDIA_API_KEY`) —
+nesse caso a chave fica visível no bundle.
+
+### Fluxo e fallback
+
+1. O Controlador valida a entrada antes de qualquer chamada.
+2. `criarProviderNvidia()` monta o prompt em pt-BR com os dados do lote, as regras e
+   as métricas determinísticas de referência.
+3. A resposta JSON é validada pelo schema (`validarSaidaIA`). Erro de rede, timeout,
+   conteúdo não-JSON, campos ausentes/fora da faixa ou confiança abaixo de
+   `confiancaMinimaIA` acionam o fallback determinístico.
+4. Os modos de falha do sandbox (`EXCECAO`, `TIMEOUT`, `BAIXA_CONFIANCA`,
+   `SAIDA_INVALIDA`) continuam funcionando com o provedor real para demonstração.
+5. Os 4 cenários oficiais em `/dev/flags` forçam o mock, pois comparam valores exatos.
+
+Testes que exercitam a NVIDIA usam `fetchImpl` falso e nunca tocam a rede. Em
+`MODE=test`, `provedorIAAtivo()` sempre devolve `mock`.
+
+---
+
+## 8. Fora de escopo nesta fase
+
+- Pesos nativos `modelo_ia.bin` em Rust e backend Rust real.
 - Banco de dados SQL real (PostgreSQL/SQLite), autenticação e multiusuário.
 - Exportação PDF/CSV, gráficos complexos e diagramas interativos com React Flow.
 - Simulação dimensional avançada (comprimento, largura, espessura e tolerância).

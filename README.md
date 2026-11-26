@@ -60,7 +60,7 @@ CLP-Sigma-Aeronautics-Parts-Analysis/
     ├── README.md                                          # Documentação técnica detalhada do front-end
     ├── package.json
     └── src/
-        ├── core/                                          # Núcleo TypeScript puro (sem React): tipos, regras, IA, fallback, pipeline
+        ├── core/                                          # Núcleo TypeScript puro (sem React): tipos, regras, IA mock/NVIDIA, fallback, pipeline
         ├── modules/                                       # 7 módulos independentes (sandboxes carregados via React.lazy)
         ├── features/                                      # Shell do Modo Desenvolvedor (/dev) e Preview do Operador (/operador)
         ├── components/                                    # UI Kit, formulários (AnalysisForm/LimitsModal) e resultados (ResultCard)
@@ -96,9 +96,17 @@ cd web
 # 2. Instale as dependências
 npm install
 
-# 3. Inicie o servidor de desenvolvimento (Vite)
+# 3. (Opcional) Ative a IA real da NVIDIA NIM
+#    Copie web/.env.example para web/.env.local, preencha NVIDIA_API_KEY
+#    e mantenha VITE_IA_PROVEDOR=nvidia. Sem isso, o mock determinístico é usado.
+
+# 4. Inicie o servidor de desenvolvimento (Vite)
 npm run dev
 ```
+
+> **Segurança:** a chave da NVIDIA fica em `web/.env.local` (ignorado pelo Git) e é
+> usada apenas pelo proxy do servidor Vite; ela não é incluída no bundle do navegador.
+> Nunca faça commit de `.env.local` nem de chaves em texto puro.
 
 Com o servidor rodando, acesse no navegador:
 - **`/dev`** — **Modo Desenvolvedor (padrão):** Hub com os 7 módulos, abertura dos sandboxes individuais (`/dev/modulo/:id`), Inspetor de Pipeline (`/dev/pipeline`), Estado & Contratos + Prévia `config.toml` (`/dev/estado`), Logs do EventBus (`/dev/logs`), Flags & 4 Cenários Oficiais (`/dev/flags`) e Documentação integrada (`/dev/docs`).
@@ -172,7 +180,7 @@ O alvo `aerolyze` usa apenas a biblioteca padrão, propaga erros com `Result` e 
 | **1** | **Modelo** (`modelo`) | `MODEL` | Membro 1 | `web/src/modules/modelo/` | `src/core/types.ts`, `src/core/rules.ts` | Pronto |
 | **2** | **Controlador** (`controlador`) | `CONTROLLER` | Membro 2 | `web/src/modules/controlador/` | `src/core/contracts.ts`, `src/core/pipeline.ts`, `src/core/mockEngine.ts`, `src/core/eventBus.ts`, `src/store/` | Pronto |
 | **3** | **Cálculos & Fallback** (`calculos`) | `CALC` | Membro 3 | `web/src/modules/calculos/` | `src/core/calculations.ts`, `src/core/fallback.ts` | Pronto |
-| **4** | **Sistema de IA** (`ia`) | `IA` | Membro 4 | `web/src/modules/ia/` | `src/core/ia.ts` | Pronto |
+| **4** | **Sistema de IA** (`ia`) | `IA` | Membro 4 | `web/src/modules/ia/` | `src/core/ia.ts`, `src/core/iaNvidia.ts`, `src/core/iaProvedor.ts` | Pronto (mock + NVIDIA NIM) |
 | **5** | **Repositório de Dados** (`repositorio`) | `REPO` | Membro 5 | `web/src/modules/repositorio/` | `src/core/repository.ts`, `src/core/seed.ts`, `src/core/config.ts` | Pronto |
 | **6** | **View de Entrada** (`view-entrada`) | `VIEW` | Membro 6 | `web/src/modules/view-entrada/` | `src/core/schemas.ts`, `src/components/form/` | Pronto |
 | **7** | **View de Dashboard** (`view-dashboard`) | `VIEW` | Membro 7 | `web/src/modules/view-dashboard/` | `src/components/ui/`, `src/components/layout/`, `src/components/result/`, `src/features/operator/` | Pronto |

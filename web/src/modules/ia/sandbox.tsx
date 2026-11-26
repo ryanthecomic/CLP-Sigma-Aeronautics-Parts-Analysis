@@ -1,8 +1,10 @@
-import { AlertTriangle, CheckCircle2, Cpu, Repeat } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Cloud, Cpu, Repeat } from "lucide-react";
 import { useState } from "react";
 import type { RequisicaoIA, SaidaBrutaIA } from "../../core/contracts";
 import { descreverModelo, ehErroIA, MODELO_IA_META, motivoFallbackIA, simularIA, validarSaidaIA } from "../../core/ia";
 import type { ErroIA } from "../../core/ia";
+import { criarProviderNvidia, NVIDIA_MODELO_PADRAO } from "../../core/iaNvidia";
+import { provedorIAAtivo } from "../../core/iaProvedor";
 import { MODOS_FALHA_IA } from "../../core/types";
 import type { ModoFalhaIA, RegrasAnaliseAero } from "../../core/types";
 import { Badge } from "../../components/ui/Badge";
@@ -107,6 +109,12 @@ export function IASandbox() {
   const [timeoutTexto, setTimeoutTexto] = useState("2000");
   const [execucao, setExecucao] = useState<Execucao | null>(null);
   const [determinismo, setDeterminismo] = useState<boolean | null>(null);
+  const [execucaoNvidia, setExecucaoNvidia] = useState<Execucao | null>(null);
+  const [executandoNvidia, setExecutandoNvidia] = useState(false);
+  const [erroNvidia, setErroNvidia] = useState<string | null>(null);
+
+  const provedorAtivo = provedorIAAtivo();
+  const modeloNvidia = (import.meta.env.VITE_NVIDIA_MODELO ?? NVIDIA_MODELO_PADRAO).trim();
 
   const peca = pecas[0] ?? {
     id: "P-001",
@@ -170,13 +178,115 @@ export function IASandbox() {
     );
   };
 
+  const executarNvidia = async () => {
+    if (seed === null || timeoutMs === null) return;
+    setExecutandoNvidia(true);
+    setErroNvidia(null);
+    try {
+      const provider = criarProviderNvidia({ modelo: modeloNvidia });
+      const saida = await provider.inferir(montarRequisicao(seed, timeoutMs));
+      const exec: Execucao = { tipo: "saida", saida };
+      setExecucaoNvidia(exec);
+      const motivoReal = motivoFallback(exec, regras);
+      log(
+        motivoReal ? "WARN" : "INFO",
+        `NVIDIA NIM (${modeloNvidia}): ${motivoReal ?? "saída aceita."}`,
+        saida,
+      );
+    } catch (e) {
+      if (ehErroIA(e)) {
+        const exec: Execucao = { tipo: "erro", erro: e };
+        setExecucaoNvidia(exec);
+        log("ERROR", `NVIDIA NIM falhou (${e.tipo}): ${e.message}`, e.detalhes);
+      } else {
+        const mensagem = e instanceof Error ? e.message : String(e);
+        setErroNvidia(mensagem);
+        log("ERROR", `NVIDIA NIM falhou: ${mensagem}`);
+      }
+    } finally {
+      setExecutandoNvidia(false);
+    }
+  };
+
   const motivo = execucao !== null ? motivoFallback(execucao, regras) : null;
   const problemasSaida = execucao !== null && execucao.tipo === "saida" ? validarSaidaIA(execucao.saida) : [];
+  const motivoNvidia = execucaoNvidia !== null ? motivoFallback(execucaoNvidia, regras) : null;
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div className="space-y-4">
       <Card
-        titulo="Simulador de Inferência (modelo_ia.bin)"
+        titulo="Provedor de IA real — NVIDIA NIM"
+        descricao="Chamada HTTP assíncrona para a API compatível com OpenAI. A chave fica no proxy do Vite e não é exposta ao navegador."
+        acoes={
+          <Badge tom={provedorAtivo === "nvidia" ? "sucesso" : "neutro"}>
+            {provedorAtivo === "nvidia" ? "Ativo no pipeline" : "Pipeline em mock"}
+          </Badge>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="space-y-3">
+            <div className="rounded-md border border-borda bg-navy-900/70 p-2.5 text-xs">
+              <p className="font-mono font-medium text-slate-200">{modeloNvidia}@nim</p>
+              <p className="mt-1 text-slate-400">
+                Endpoint: {import.meta.env.VITE_NVIDIA_BASE_URL ?? "/api/nvidia"} · timeout {timeoutTexto} ms
+              </p>
+              <p className="mt-1 text-slate-400">
+                Erro, timeout, baixa confiança ou saída inválida acionam o fallback determinístico.
+              </p>
+            </div>
+
+            <Button
+              variante="primario"
+              onClick={executarNvidia}
+              disabled={!entradaValida}
+              carregando={executandoNvidia}
+              icone={<Cloud className="size-4" />}
+              className="w-full"
+            >
+              Executar inferência real
+            </Button>
+
+            {provedorAtivo !== "nvidia" && (
+              <p className="text-[11px] text-amber-300">
+                Para ativar no pipeline, defina <span className="font-mono">VITE_IA_PROVEDOR=nvidia</span> em{" "}
+                <span className="font-mono">web/.env.local</span> e reinicie o Vite.
+              </p>
+            )}
+
+            {erroNvidia !== null && (
+              <p role="alert" className="rounded-md border border-red-500/40 bg-red-950/50 p-2 text-xs text-red-200">
+                {erroNvidia}
+              </p>
+            )}
+          </div>
+
+          <div className="lg:col-span-2">
+            {execucaoNvidia === null ? (
+              <p className="text-xs text-slate-400">
+                Clique em &ldquo;Executar inferência real&rdquo; para chamar a NVIDIA NIM com os dados do lote e o modo
+                de falha selecionado.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {motivoNvidia !== null && (
+                  <div role="alert" className="rounded-md border border-amber-500/40 bg-amber-950/40 p-3 text-xs text-amber-200">
+                    <p className="font-semibold">Motivo do fallback:</p>
+                    <p className="mt-1 font-mono">{motivoNvidia}</p>
+                  </div>
+                )}
+                <CodeBlock
+                  titulo={execucaoNvidia.tipo === "saida" ? "SaidaBrutaIA (NVIDIA NIM)" : "ErroIA (NVIDIA NIM)"}
+                  valor={serializarExecucao(execucaoNvidia)}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card
+          titulo="Simulador de Inferência (modelo_ia.bin)"
         descricao="Chamada em processo, determinística por seed e sem rede."
       >
         <div className="space-y-3">
@@ -340,6 +450,7 @@ export function IASandbox() {
           </div>
         )}
       </Card>
+      </div>
     </div>
   );
 }

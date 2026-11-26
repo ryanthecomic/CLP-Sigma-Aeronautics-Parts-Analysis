@@ -6,7 +6,7 @@ export const iaManifest: ReactModuleManifest = {
   nome: "Sistema de IA",
   responsavel: "Membro 4",
   descricao:
-    "Provedor mock determinístico (modelo_ia.bin) com seed, 4 modos de falha reproduzíveis, metadados do modelo e indicação de fallback.",
+    "Provedor mock determinístico (modelo_ia.bin) e provedor real NVIDIA NIM (assíncrono), com modos de falha reproduzíveis, metadados do modelo e indicação de fallback.",
   status: "pronto",
   camada: "IA",
   contratos: ["AIProvider", "ConfigIA", "RequisicaoIA", "SaidaBrutaIA", "ModeloIAMeta", "TipoErroIA"],

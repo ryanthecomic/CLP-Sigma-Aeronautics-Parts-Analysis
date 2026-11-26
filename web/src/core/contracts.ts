@@ -208,6 +208,8 @@ export interface OpcoesAnalise {
   regras?: RegrasAnaliseAero;
   ia?: ConfigIA;
   seed?: number;
+  /** Provedor alternativo (ex.: mock nos cenários oficiais). */
+  provedorIA?: AIProvider;
 }
 
 /** Porta que a camada de UI usa para pedir uma análise. */
