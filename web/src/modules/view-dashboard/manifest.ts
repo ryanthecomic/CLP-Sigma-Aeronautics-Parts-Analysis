@@ -8,7 +8,7 @@ export const viewDashboardManifest: ReactModuleManifest = {
   descricao: "Cards de resultado, estados visuais (Ótimo/Atenção/Crítico), alertas e histórico.",
   status: "pronto",
   camada: "VIEW",
-  contratos: ["ResultadoAnalise", "StatusQualidade", "MetricasProducao"],
+  contratos: ["ResultadoAnalise", "StatusQualidade", "MetricasProducao", "RegrasAnaliseAero", "OrigemResultado"],
   sandbox: lazy(() => import("./sandbox")),
 };
 
